@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.tmp
+
+# Configuração local de desenvolvimento (um arquivo por pacote, nunca versionado)
+software-packs/*/local.config.json
+
+# Artefatos de execução
+/runs/
+/.cache/

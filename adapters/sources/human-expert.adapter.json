@@ -1,0 +1,18 @@
+{
+  "id": "human-expert",
+  "source_kind": "human-expert",
+  "status": "contract",
+  "summary": "Declarações e respostas de especialistas humanos, registradas como fonte e como revisão.",
+  "operations": ["describe", "inventory", "extract", "coverage"],
+  "produces": ["statement"],
+  "read_only": true,
+  "requires_capabilities": [],
+  "safety": {
+    "requires_human_authorization": false,
+    "notes": "A pessoa é a fonte. O nome e a data são obrigatórios. A transcrição guarda o trecho literal; a interpretação fica em registro separado."
+  },
+  "limits": [
+    "Uma declaração vale para o que foi perguntado e para o registro revisado. Em outro registro, entra como INFERRED.",
+    "Declaração que contradiz a evidência observada abre contradição; nenhum dos lados é descartado."
+  ]
+}

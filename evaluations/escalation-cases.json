@@ -1,0 +1,105 @@
+{
+  "description": "Casos de roteamento. Cada caso fixa os sinais de entrada de core.escalation.decide e a rota esperada. As faixas de confiança vêm de policies/escalation.policy.json (baixa abaixo de 0.5).",
+  "cases": [
+    {
+      "id": "reuse-prior-validated",
+      "signals": { "prior_validated_applies": true, "confidence": 0.1 },
+      "expected_route": "NO_ESCALATION",
+      "expected_reason": "reuse"
+    },
+    {
+      "id": "already-validated",
+      "signals": { "status": "VALIDATED", "confidence": 0.1 },
+      "expected_route": "NO_ESCALATION",
+      "expected_reason": "already-validated"
+    },
+    {
+      "id": "no-evidence-obtainable-by-runtime",
+      "signals": { "evidence_present": false, "source_obtainable": "runtime" },
+      "expected_route": "SOURCE_GAP",
+      "expected_reason": "no-evidence",
+      "expected_needed_source": "runtime"
+    },
+    {
+      "id": "no-evidence-nothing-obtainable",
+      "signals": { "evidence_present": false },
+      "expected_route": "SOURCE_GAP",
+      "expected_reason": "no-evidence",
+      "expected_needed_source": "human-expert"
+    },
+    {
+      "id": "no-evidence-beats-choice",
+      "signals": { "evidence_present": false, "choice_options": 2 },
+      "expected_route": "SOURCE_GAP",
+      "expected_reason": "no-evidence",
+      "expected_needed_source": "human-expert"
+    },
+    {
+      "id": "choice-between-alternatives",
+      "signals": { "choice_options": 3, "confidence": 0.9 },
+      "expected_route": "HUMAN_DECISION",
+      "expected_reason": "needs-choice"
+    },
+    {
+      "id": "choice-beats-low-confidence",
+      "signals": { "choice_options": 2, "confidence": 0.2 },
+      "expected_route": "HUMAN_DECISION",
+      "expected_reason": "needs-choice"
+    },
+    {
+      "id": "ambiguous-reading-first-pass",
+      "signals": { "confidence": 0.3 },
+      "expected_route": "AI_RECHECK",
+      "expected_reason": "ambiguous-reading"
+    },
+    {
+      "id": "recheck-unresolved-with-inference",
+      "signals": { "confidence": 0.3, "recheck_done": true, "recheck_resolved": false, "inference_to_confirm": true },
+      "expected_route": "HUMAN_VALIDATION",
+      "expected_reason": "recheck-unresolved"
+    },
+    {
+      "id": "recheck-unresolved-without-inference",
+      "signals": { "confidence": 0.3, "recheck_done": true, "recheck_resolved": false, "inference_to_confirm": false },
+      "expected_route": "SOURCE_GAP",
+      "expected_reason": "recheck-unresolved",
+      "expected_needed_source": "human-expert"
+    },
+    {
+      "id": "recheck-resolved",
+      "signals": { "confidence": 0.3, "recheck_done": true, "recheck_resolved": true },
+      "expected_route": "NO_ESCALATION",
+      "expected_reason": "sufficient"
+    },
+    {
+      "id": "high-impact-inferred",
+      "signals": { "impact": "high", "inference_to_confirm": true, "confidence": 0.95 },
+      "expected_route": "HUMAN_VALIDATION",
+      "expected_reason": "high-impact-unvalidated"
+    },
+    {
+      "id": "high-impact-nothing-to-confirm",
+      "signals": { "impact": "high", "inference_to_confirm": false, "confidence": 0.95 },
+      "expected_route": "NO_ESCALATION",
+      "expected_reason": "sufficient"
+    },
+    {
+      "id": "normal-impact-confident",
+      "signals": { "impact": "normal", "inference_to_confirm": true, "confidence": 0.95 },
+      "expected_route": "NO_ESCALATION",
+      "expected_reason": "sufficient"
+    },
+    {
+      "id": "boundary-confidence-at-threshold-is-not-low",
+      "signals": { "confidence": 0.5 },
+      "expected_route": "NO_ESCALATION",
+      "expected_reason": "sufficient"
+    },
+    {
+      "id": "boundary-confidence-just-below-threshold",
+      "signals": { "confidence": 0.49 },
+      "expected_route": "AI_RECHECK",
+      "expected_reason": "ambiguous-reading"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "principle": "Humanos respondem somente o que a IA não consegue resolver de maneira segura.",
+  "ladder": [
+    {
+      "step": "prior-validated-knowledge",
+      "description": "Conhecimento já VALIDATED que se aplica ao caso. Se aplica, não há o que perguntar."
+    },
+    {
+      "step": "evidence-reuse",
+      "description": "Evidências já coletadas e registradas, inclusive de outras telas e capturas do mesmo software."
+    },
+    {
+      "step": "documentation",
+      "description": "Documentação existente do software (manuais, wiki, notas de versão) já inventariada como fonte."
+    },
+    {
+      "step": "relations",
+      "description": "Relações entre registros: lookups, fluxos, regras e interações que já respondem por inferência."
+    },
+    {
+      "step": "ai-recheck",
+      "description": "Nova leitura focada da MESMA evidência. Só vale se houver ambiguidade de leitura; sem evidência nova ou diferente, não é nova leitura e a rota correta é SOURCE_GAP."
+    },
+    {
+      "step": "runtime",
+      "description": "Observação em execução, somente com autorização humana explícita e em ambiente seguro. É a última etapa automática porque toca o sistema vivo."
+    }
+  ],
+  "routes": {
+    "AI_RECHECK": {
+      "when": "A evidência existe, mas a leitura é ambígua (confiança baixa) e ainda não houve nova leitura.",
+      "resolved_by": "O próprio agente, relendo a evidência com foco. Custo humano zero.",
+      "requires_named_person": false
+    },
+    "SOURCE_GAP": {
+      "when": "A resposta não está em nenhuma fonte disponível. A falha não é de leitura: falta fonte.",
+      "resolved_by": "Obter a fonte indicada em needed_source (captura, documento, banco, execução ou especialista).",
+      "requires_named_person": false
+    },
+    "HUMAN_DECISION": {
+      "when": "Há duas ou mais alternativas e a evidência não decide entre elas (por exemplo, agrupamento de capturas ou contradição).",
+      "resolved_by": "Pessoa nomeada escolhe entre as options registradas.",
+      "requires_named_person": true
+    },
+    "HUMAN_VALIDATION": {
+      "when": "Existe uma inferência a confirmar, seja porque a nova leitura não resolveu, seja porque o impacto é alto.",
+      "resolved_by": "Pessoa nomeada confirma, refina ou contradiz a hipótese referenciada.",
+      "requires_named_person": true
+    }
+  },
+  "thresholds": {
+    "low_below": 0.5,
+    "high_from": 0.8
+  },
+  "impact_rules": {
+    "high_requires_validation": true
+  }
+}

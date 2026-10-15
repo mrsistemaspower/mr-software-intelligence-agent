@@ -1,0 +1,62 @@
+{
+  "collection": "sources",
+  "records": [
+    {
+      "id": "src:shot-posting-01",
+      "kind": "screenshot",
+      "role": "primary",
+      "locator": { "workspace": "pack", "path": "synthetic/shot-posting-01.png" },
+      "sha256": "a1b2c3d4e5f60718a1b2c3d4e5f60718a1b2c3d4e5f60718a1b2c3d4e5f60718",
+      "captured_at": "2026-10-01T10:00:00-03:00",
+      "contains_sensitive_data": false
+    },
+    {
+      "id": "src:shot-posting-02",
+      "kind": "screenshot",
+      "role": "alternate-state",
+      "locator": { "workspace": "pack", "path": "synthetic/shot-posting-02.png" },
+      "sha256": "b2c3d4e5f6071829b2c3d4e5f6071829b2c3d4e5f6071829b2c3d4e5f6071829",
+      "captured_at": "2026-10-01T10:05:00-03:00",
+      "contains_sensitive_data": false
+    },
+    {
+      "id": "src:shot-picker-01",
+      "kind": "screenshot",
+      "role": "primary",
+      "locator": { "workspace": "pack", "path": "synthetic/shot-picker-01.png" },
+      "sha256": "c3d4e5f607182930c3d4e5f607182930c3d4e5f607182930c3d4e5f607182930",
+      "captured_at": "2026-10-01T10:10:00-03:00",
+      "contains_sensitive_data": false
+    },
+    {
+      "id": "src:manual-v10",
+      "kind": "documentation",
+      "locator": { "workspace": "pack", "path": "synthetic/manual-1.0.txt" },
+      "sha256": "d4e5f60718293041d4e5f60718293041d4e5f60718293041d4e5f60718293041",
+      "contains_sensitive_data": false
+    },
+    {
+      "id": "src:notes-v11",
+      "kind": "release-notes",
+      "locator": { "workspace": "pack", "path": "synthetic/release-notes-1.1.txt" },
+      "sha256": "e5f6071829304152e5f6071829304152e5f6071829304152e5f6071829304152",
+      "contains_sensitive_data": false
+    },
+    {
+      "id": "src:runtime-session-01",
+      "kind": "runtime",
+      "locator": { "workspace": "pack", "path": "synthetic/session-01.log" },
+      "sha256": "f607182930415263f607182930415263f607182930415263f607182930415263",
+      "captured_at": "2026-10-03T14:00:00-03:00",
+      "contains_sensitive_data": false,
+      "description": "Sessão em ambiente de teste, com autorização registrada."
+    },
+    {
+      "id": "src:expert-interview-01",
+      "kind": "human-expert",
+      "locator": { "workspace": "pack", "path": "synthetic/interview-01.txt" },
+      "contains_sensitive_data": null,
+      "description": "Entrevista com especialista. Sem hash: o registro é a transcrição, ainda não conferida quanto a dados sensíveis."
+    }
+  ]
+}

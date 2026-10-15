@@ -1,0 +1,104 @@
+{
+  "collection": "evidence",
+  "records": [
+    {
+      "id": "evd:posting-title",
+      "source_id": "src:shot-posting-01",
+      "locator": "title bar",
+      "kind": "visual-element",
+      "content": "Window title reads 'Posting Window'.",
+      "extracted_by": { "actor": "ai", "name": "reader-agent" },
+      "confidence": 0.97
+    },
+    {
+      "id": "evd:posting-save-button",
+      "source_id": "src:shot-posting-01",
+      "locator": "bottom right",
+      "kind": "visual-element",
+      "content": "Button labelled 'Save' at the bottom right, enabled.",
+      "extracted_by": { "actor": "ai", "name": "reader-agent" },
+      "confidence": 0.93
+    },
+    {
+      "id": "evd:posting-account-field",
+      "source_id": "src:shot-posting-01",
+      "locator": "upper form",
+      "kind": "visual-element",
+      "content": "Field labelled 'Account' with a '...' button at its right.",
+      "extracted_by": { "actor": "ai", "name": "reader-agent" },
+      "confidence": 0.95
+    },
+    {
+      "id": "evd:posting-costcenter-field",
+      "source_id": "src:shot-posting-01",
+      "locator": "upper form",
+      "kind": "visual-element",
+      "content": "Field labelled 'Cost Center' with a '...' button at its right.",
+      "extracted_by": { "actor": "ai", "name": "reader-agent" },
+      "confidence": 0.9
+    },
+    {
+      "id": "evd:posting-no-delete",
+      "source_id": "src:shot-posting-01",
+      "locator": "whole window",
+      "kind": "structure",
+      "content": "No button labelled 'Delete' is visible in the window.",
+      "extracted_by": { "actor": "ai", "name": "reader-agent" },
+      "confidence": 0.8
+    },
+    {
+      "id": "evd:posting-alt-title",
+      "source_id": "src:shot-posting-02",
+      "locator": "title bar",
+      "kind": "visual-element",
+      "content": "Window title reads 'Posting'. The right edge of the title bar is cut off.",
+      "extracted_by": { "actor": "ai", "name": "reader-agent" },
+      "confidence": 0.7
+    },
+    {
+      "id": "evd:picker-title",
+      "source_id": "src:shot-picker-01",
+      "locator": "title bar",
+      "kind": "visual-element",
+      "content": "Dialog titled 'Account Picker' listing account codes.",
+      "extracted_by": { "actor": "ai", "name": "reader-agent" },
+      "confidence": 0.96
+    },
+    {
+      "id": "evd:manual-delete",
+      "source_id": "src:manual-v10",
+      "locator": "section 4",
+      "kind": "text",
+      "content": "Manual 1.0 says: 'Delete removes the entry permanently.'",
+      "extracted_by": { "actor": "tool", "name": "text-extractor" },
+      "confidence": 0.9
+    },
+    {
+      "id": "evd:notes-save-renamed",
+      "source_id": "src:notes-v11",
+      "locator": "item 3",
+      "kind": "text",
+      "content": "Release 1.1: the Save button is now called Post.",
+      "extracted_by": { "actor": "tool", "name": "text-extractor" },
+      "confidence": 0.95
+    },
+    {
+      "id": "evd:runtime-account-click",
+      "source_id": "src:runtime-session-01",
+      "locator": "step 2",
+      "kind": "behavior",
+      "content": "Clicking '...' next to Account opens the 'Account Picker' dialog.",
+      "extracted_by": { "actor": "human", "name": "Maria Example" },
+      "confidence": 0.95
+    },
+    {
+      "id": "evd:expert-balance-rule",
+      "source_id": "src:expert-interview-01",
+      "locator": "minute 12",
+      "kind": "statement",
+      "content": "Expert states that debits must equal credits before an entry is posted.",
+      "extracted_by": { "actor": "human", "name": "Maria Example" },
+      "confidence": 0.9
+    }
+  ]
+}

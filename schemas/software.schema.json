@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:software:1",
+  "title": "Software",
+  "description": "Metadados do software alvo. Não contém conhecimento sobre o software, só o que se sabe sobre as fontes disponíveis.",
+  "type": "object",
+  "required": ["software_id", "display_name", "category", "source_availability"],
+  "additionalProperties": false,
+  "properties": {
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "display_name": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/name" },
+    "category": { "enum": ["erp", "crm", "legacy-application", "vertical-application", "library", "service", "other"] },
+    "vendor": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/name" },
+    "source_availability": {
+      "description": "Disponibilidade de cada tipo de fonte. 'unknown' é o valor correto até alguém conferir.",
+      "type": "object",
+      "required": ["source_code", "database", "runtime", "documentation", "screenshots", "release_notes"],
+      "additionalProperties": false,
+      "properties": {
+        "source_code": { "enum": ["available", "partial", "unavailable", "unknown"] },
+        "database": { "enum": ["available", "partial", "unavailable", "unknown"] },
+        "runtime": { "enum": ["available", "partial", "unavailable", "unknown"] },
+        "documentation": { "enum": ["available", "partial", "unavailable", "unknown"] },
+        "screenshots": { "enum": ["available", "partial", "unavailable", "unknown"] },
+        "release_notes": { "enum": ["available", "partial", "unavailable", "unknown"] }
+      }
+    },
+    "notes": { "type": "string", "minLength": 1 }
+  }
+}

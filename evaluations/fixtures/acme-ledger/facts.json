@@ -1,0 +1,76 @@
+{
+  "collection": "facts",
+  "records": [
+    {
+      "id": "fct:manual-says-delete",
+      "statement": "The 1.0 manual claims the posting window can delete an entry.",
+      "about": ["scr:posting-window"],
+      "supported_by": ["evd:manual-delete"],
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.9,
+        "provenance": [
+          { "source_id": "src:manual-v10", "evidence_id": "evd:manual-delete", "relation": "direct", "source_sha256": "d4e5f60718293041d4e5f60718293041d4e5f60718293041d4e5f60718293041" }
+        ],
+        "quarantine": { "reason": "contradiction", "ref": "ctr:delete-capability", "since": "2026-10-04T09:00:00-03:00" },
+        "valid_in_versions": ["1.0"]
+      }
+    },
+    {
+      "id": "fct:capture-no-delete",
+      "statement": "No Delete button is visible in the posting window capture.",
+      "about": ["scr:posting-window"],
+      "supported_by": ["evd:posting-no-delete"],
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.8,
+        "provenance": [
+          { "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-no-delete", "relation": "direct" }
+        ],
+        "quarantine": { "reason": "contradiction", "ref": "ctr:delete-capability", "since": "2026-10-04T09:00:00-03:00" }
+      }
+    },
+    {
+      "id": "fct:posting-purpose",
+      "statement": "The posting window records an entry with an account and a cost center.",
+      "about": ["scr:posting-window"],
+      "supported_by": ["evd:posting-account-field", "evd:posting-costcenter-field", "evd:posting-save-button"],
+      "epistemic": {
+        "status": "INFERRED",
+        "confidence": 0.8,
+        "provenance": [
+          { "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-account-field", "relation": "derived" },
+          { "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-costcenter-field", "relation": "derived" }
+        ],
+        "basis": "Field labels and the Save button of a single capture suggest a data-entry window."
+      }
+    },
+    {
+      "id": "fct:picker-lists-accounts",
+      "statement": "The account picker dialog lists account codes.",
+      "about": ["scr:account-picker"],
+      "supported_by": ["evd:picker-title"],
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.9,
+        "provenance": [
+          { "source_id": "src:shot-picker-01", "evidence_id": "evd:picker-title", "relation": "direct" }
+        ]
+      }
+    },
+    {
+      "id": "fct:button-renamed",
+      "statement": "In release 1.1 the Save button is called Post.",
+      "about": ["scr:posting-window"],
+      "supported_by": ["evd:notes-save-renamed"],
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.95,
+        "provenance": [
+          { "source_id": "src:notes-v11", "evidence_id": "evd:notes-save-renamed", "relation": "direct", "source_sha256": "e5f6071829304152e5f6071829304152e5f6071829304152e5f6071829304152" }
+        ],
+        "valid_in_versions": ["1.1"]
+      }
+    }
+  ]
+}

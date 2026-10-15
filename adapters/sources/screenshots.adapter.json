@@ -1,0 +1,19 @@
+{
+  "id": "screenshots",
+  "source_kind": "screenshot",
+  "status": "contract",
+  "summary": "Capturas de tela como fonte de evidência visual: títulos, campos, ações, abas, estados visíveis.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["visual-element", "text", "structure"],
+  "read_only": true,
+  "requires_capabilities": ["vision", "file-read"],
+  "safety": {
+    "requires_human_authorization": false,
+    "notes": "Nunca embute a imagem em registros nem em documentação publicada. Capturas podem conter dados reais: contains_sensitive_data começa null."
+  },
+  "limits": [
+    "Rótulo truncado ou ilegível exige confiança baixa e, se persistir, SOURCE_GAP.",
+    "Estado visível numa captura não é comportamento nem estado padrão.",
+    "Uma captura não é uma tela: o agrupamento é decisão registrada."
+  ]
+}

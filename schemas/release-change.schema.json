@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:release-change:1",
+  "title": "ReleaseChange",
+  "description": "Uma mudança detectada entre duas versões do software alvo e o impacto no conhecimento já registrado. Base da inteligência de mudança: reanalisar só o que foi afetado.",
+  "type": "object",
+  "required": ["id", "from_version", "to_version", "kind", "subject", "detected_by", "impact", "epistemic"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^rel:" },
+    "from_version": {
+      "type": "object",
+      "required": ["label"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "source_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^src:" }
+      }
+    },
+    "to_version": {
+      "type": "object",
+      "required": ["label"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "source_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^src:" }
+      }
+    },
+    "kind": { "enum": ["added", "removed", "modified", "renamed", "unknown"] },
+    "subject": {
+      "type": "object",
+      "required": ["descriptor"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" },
+        "descriptor": { "type": "string", "minLength": 1 }
+      }
+    },
+    "detected_by": {
+      "type": "object",
+      "required": ["method"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "enum": ["release-notes", "evidence-diff", "runtime-diff", "human-report"] },
+        "source_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^src:" }
+        }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "required": ["action", "affected_refs"],
+      "additionalProperties": false,
+      "properties": {
+        "action": { "enum": ["NONE", "REVALIDATE", "REANALYZE", "INVALIDATE"] },
+        "affected_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" }
+        }
+      }
+    },
+    "epistemic": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/epistemic" }
+  }
+}

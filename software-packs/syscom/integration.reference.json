@@ -1,0 +1,35 @@
+{
+  "software_id": "syscom",
+  "workspace_snapshot": {
+    "vcs": "git",
+    "ref": "4c652a38c37d1c492837e82a0cef06de59de2a6c",
+    "observed_at": "2026-10-14",
+    "note": "Commit observado na auditoria somente leitura. O working tree tinha alterações não commitadas nesse momento."
+  },
+  "workspace_roots": [
+    { "role": "knowledge", "path": "knowledge", "note": "Bibliotecas de convenções: padrões de interação e rotas de lookup." },
+    { "role": "data", "path": "data/k4", "note": "Lotes de escala, evidência humana e relatórios." },
+    { "role": "data", "path": "data/screens", "note": "Catálogo de telas da trilha anterior." },
+    { "role": "data", "path": "data/pilot", "note": "Piloto de conhecimento por tela." },
+    { "role": "documentation", "path": "docs", "note": "Contratos, políticas e relatórios do projeto." },
+    { "role": "tools", "path": "tools", "note": "Pipeline em Python, somente biblioteca padrão." },
+    { "role": "schemas", "path": "schemas", "note": "Schemas do formato nativo." },
+    { "role": "prompts", "path": "prompts", "note": "Prompts mestres da leitura de telas." },
+    { "role": "evidence-raw", "path": "inputs", "note": "Capturas brutas: fonte primária, nunca copiada." },
+    { "role": "published-output", "path": "site", "note": "Portais de revisão publicados." },
+    { "role": "legacy", "path": "_archive", "note": "Prova de conceito arquivada." }
+  ],
+  "native_formats": [
+    { "name": "syscom-screen-knowledge@1.0.0", "role": "knowledge-contract", "note": "Conhecimento por tela (schemas/syscom-screen.schema.json)." },
+    { "name": "k3-transfer@2.1.0", "role": "derived-view", "note": "Visão derivada e regenerável do conhecimento corrente de uma tela." },
+    { "name": "human-review-policy@2.1.0", "role": "policy", "note": "Cinco classes de revisão." },
+    { "name": "syscom-batch-run@1.0.0", "role": "pipeline-state", "note": "Estado de lote." },
+    { "name": "syscom-k4-stage-state@1.0.0", "role": "pipeline-state", "note": "Checkpoints por estágio com sha256 por artefato." }
+  ],
+  "mapping_status": "not-started",
+  "extraction_notes": [
+    "O mapeamento do formato nativo para os registros genéricos ainda não começou.",
+    "Pontos de atenção levantados na auditoria: definição de VALIDATED diferente entre documento e schema; conflito resolvido não cabe no pacote derivado; sha256 de fonte anulável.",
+    "A ordem sugerida de extração está em docs/AGENT_FOUNDATION_AUDIT.md, seção 8."
+  ]
+}

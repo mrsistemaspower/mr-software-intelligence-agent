@@ -1,0 +1,32 @@
+{
+  "id": "learn",
+  "verb": "learn",
+  "summary": "Aprende um software, ou amplia o que já se sabe, a partir das fontes disponíveis, com intervenção humana mínima.",
+  "inputs": [
+    { "name": "software", "required": true, "description": "software_id do pacote." },
+    { "name": "source", "required": false, "description": "Fonte ou recorte específico a processar. Sem ele, processa as fontes ainda não examinadas." },
+    { "name": "mode", "required": false, "description": "'new' para primeira passada ou 'incremental' para reaproveitar o conhecimento existente. Padrão: incremental quando o pacote já tem registros." }
+  ],
+  "skills": ["erp-reverse-engineering", "ui-reverse-engineering", "documentation-mining", "workflow-reconstruction", "business-rule-discovery", "database-analysis", "runtime-exploration"],
+  "steps": [
+    { "id": "load-pack", "description": "Carregar o manifesto e o conhecimento existente; validar o pacote antes de começar.", "gate": "py -m core validate-pack <pacote>" },
+    { "id": "inventory-sources", "description": "Inventariar fontes, calcular hashes e registrar cobertura.", "skill": "erp-reverse-engineering" },
+    { "id": "discover-surfaces", "description": "Descobrir módulos e superfícies de interação.", "skill": "erp-reverse-engineering" },
+    { "id": "analyze-screens", "description": "Ler telas e estados, agrupar capturas por decisão registrada.", "skill": "ui-reverse-engineering" },
+    { "id": "mine-documentation", "description": "Extrair afirmações da documentação existente, com versão.", "skill": "documentation-mining" },
+    { "id": "analyze-interactions", "description": "Registrar gatilhos e efeitos; sem teste em execução o efeito é INFERRED.", "skill": "ui-reverse-engineering" },
+    { "id": "discover-lookups-and-workflows", "description": "Registrar lookups (destino desconhecido fica UNKNOWN) e reconstruir fluxos.", "skill": "workflow-reconstruction" },
+    { "id": "discover-rules", "description": "Registrar regras de negócio com impacto explícito.", "skill": "business-rule-discovery" },
+    { "id": "classify-and-detect", "description": "Classificar evidência, detectar contradições e pôr as posições em quarentena." },
+    { "id": "route-reviews", "description": "Rotear itens abertos pela escada de escalonamento e agrupar perguntas repetidas.", "gate": "policies/escalation.policy.json" },
+    { "id": "save-pack", "description": "Gravar registros e validar o pacote.", "gate": "py -m core validate-pack <pacote>" }
+  ],
+  "outputs": [
+    { "name": "records", "description": "Registros novos ou atualizados no pacote." },
+    { "name": "open_items", "description": "Revisões abertas por rota, já sem perguntas repetidas." },
+    { "name": "coverage_report", "description": "O que foi examinado e o que não foi." }
+  ],
+  "mutates_knowledge": true,
+  "escalates_to_human": true,
+  "policies": ["policies/evidence-discipline.md", "policies/human-escalation.md", "policies/safety-and-isolation.md", "policies/escalation.policy.json"]
+}

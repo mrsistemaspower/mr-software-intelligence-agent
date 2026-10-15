@@ -1,0 +1,14 @@
+{
+  "software_id": "template-software",
+  "display_name": "Template Software",
+  "category": "other",
+  "source_availability": {
+    "source_code": "unknown",
+    "database": "unknown",
+    "runtime": "unknown",
+    "documentation": "unknown",
+    "screenshots": "unknown",
+    "release_notes": "unknown"
+  },
+  "notes": "Preencha com o que se sabe sobre as fontes. 'unknown' é o valor correto até alguém conferir."
+}

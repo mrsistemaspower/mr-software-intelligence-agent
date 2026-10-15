@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:contradiction:1",
+  "title": "Contradiction",
+  "description": "Duas ou mais posições incompatíveis sobre o mesmo assunto. As posições nunca são apagadas nem sobrescritas, nem depois de resolvidas. Enquanto OPEN, as posições ficam em quarentena.",
+  "type": "object",
+  "required": ["id", "topic", "positions", "status", "detected_by"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^ctr:" },
+    "topic": { "type": "string", "minLength": 1 },
+    "positions": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["ref", "summary"],
+        "additionalProperties": false,
+        "properties": {
+          "ref": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" },
+          "summary": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "status": { "enum": ["OPEN", "RESOLVED"] },
+    "detected_by": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/actor" },
+    "detected_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" },
+    "resolution": {
+      "type": "object",
+      "required": ["decided_by", "decided_at", "method", "rationale", "history_preserved"],
+      "additionalProperties": false,
+      "properties": {
+        "decided_by": { "type": "string", "minLength": 1 },
+        "decided_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" },
+        "method": { "enum": ["human-decision", "new-evidence", "superseded-by-release"] },
+        "chosen_ref": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" },
+        "rationale": { "type": "string", "minLength": 1 },
+        "history_preserved": { "const": true }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "RESOLVED" } }, "required": ["status"] },
+      "then": { "required": ["resolution"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "OPEN" } }, "required": ["status"] },
+      "then": { "not": { "required": ["resolution"] } }
+    }
+  ]
+}

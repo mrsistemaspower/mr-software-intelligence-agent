@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:llm-profile:1",
+  "title": "LlmProfile",
+  "description": "Perfil de um ambiente de modelo de linguagem. É a única camada que pode nomear um provedor. O núcleo do agente continua independente de qualquer perfil.",
+  "type": "object",
+  "required": ["id", "provider", "interface_kind", "instruction_entrypoint", "required_capabilities", "tool_mapping", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "provider": { "type": "string", "minLength": 1 },
+    "interface_kind": { "enum": ["chat", "agent-ide", "api", "local-runtime"] },
+    "instruction_entrypoint": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/relativePath" },
+    "loading": {
+      "type": "object",
+      "required": ["method"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "type": "string", "minLength": 1 },
+        "example_file": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/relativePath" }
+      }
+    },
+    "required_capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/capability" }
+    },
+    "tool_mapping": {
+      "description": "Como cada ferramenta abstrata é obtida neste ambiente.",
+      "type": "object",
+      "required": ["read-file", "search", "write-file", "run-command", "fetch-web"],
+      "additionalProperties": false,
+      "properties": {
+        "read-file": { "type": "string", "minLength": 1 },
+        "search": { "type": "string", "minLength": 1 },
+        "write-file": { "type": "string", "minLength": 1 },
+        "run-command": { "type": "string", "minLength": 1 },
+        "fetch-web": { "type": "string", "minLength": 1 }
+      }
+    },
+    "known_limits": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "status": { "enum": ["draft", "verified"] }
+  }
+}

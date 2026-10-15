@@ -1,0 +1,25 @@
+{
+  "collection": "business-rules",
+  "records": [
+    {
+      "id": "rul:balance",
+      "statement": "A soma dos débitos deve ser igual à soma dos créditos antes de o lançamento ser registrado.",
+      "kind": "validation",
+      "impact": "high",
+      "applies_to": ["wfl:post-entry", "scr:posting-window"],
+      "epistemic": {
+        "status": "VALIDATED",
+        "confidence": 0.95,
+        "provenance": [{ "source_id": "src:expert-interview-01", "evidence_id": "evd:expert-balance-rule", "relation": "direct" }],
+        "validation": {
+          "validated_by": "Maria Example",
+          "validated_at": "2026-10-05T15:30:00-03:00",
+          "method": "human_review",
+          "review_id": "rev:validate-balance",
+          "scope": "Vale para a versão 1.0 da janela de lançamento."
+        },
+        "valid_in_versions": ["1.0"]
+      }
+    }
+  ]
+}

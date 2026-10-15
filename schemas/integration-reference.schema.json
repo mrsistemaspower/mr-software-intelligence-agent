@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:integration-reference:1",
+  "title": "IntegrationReference",
+  "description": "Mapa de referência entre um pacote e o workspace externo onde o conhecimento mora. Só caminhos relativos ao workspace. Não duplica conhecimento.",
+  "type": "object",
+  "required": ["software_id", "workspace_snapshot", "workspace_roots", "native_formats", "mapping_status"],
+  "additionalProperties": false,
+  "properties": {
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "workspace_snapshot": {
+      "type": "object",
+      "required": ["vcs", "ref", "observed_at"],
+      "additionalProperties": false,
+      "properties": {
+        "vcs": { "enum": ["git", "none"] },
+        "ref": { "type": "string", "minLength": 1 },
+        "observed_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/date" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "workspace_roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["role", "path"],
+        "additionalProperties": false,
+        "properties": {
+          "role": { "enum": ["knowledge", "data", "documentation", "tools", "schemas", "prompts", "evidence-raw", "published-output", "legacy"] },
+          "path": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/relativePath" },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "native_formats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "role"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "role": { "enum": ["knowledge-contract", "derived-view", "pipeline-state", "policy", "other"] },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "mapping_status": { "enum": ["not-started", "partial", "complete"] },
+    "extraction_notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

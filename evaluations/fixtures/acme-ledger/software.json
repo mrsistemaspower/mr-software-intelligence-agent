@@ -1,0 +1,15 @@
+{
+  "software_id": "acme-ledger",
+  "display_name": "Acme Ledger",
+  "category": "other",
+  "vendor": "Synthetic",
+  "source_availability": {
+    "source_code": "unavailable",
+    "database": "unavailable",
+    "runtime": "partial",
+    "documentation": "available",
+    "screenshots": "available",
+    "release_notes": "available"
+  },
+  "notes": "Software fictício para exercitar todos os registros e invariantes do pacote."
+}

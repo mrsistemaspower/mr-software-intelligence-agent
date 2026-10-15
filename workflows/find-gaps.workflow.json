@@ -1,0 +1,24 @@
+{
+  "id": "find-gaps",
+  "verb": "find-gaps",
+  "summary": "Levanta o que ainda não se sabe, classifica cada lacuna por rota e entrega perguntas qualificadas, sem repetição.",
+  "inputs": [
+    { "name": "software", "required": true, "description": "software_id do pacote." },
+    { "name": "scope", "required": false, "description": "Recorte (tela, módulo, fluxo). Sem ele, o pacote inteiro." }
+  ],
+  "skills": ["erp-reverse-engineering"],
+  "steps": [
+    { "id": "scan", "description": "Varrer o pacote: lookups UNKNOWN, afirmações INFERRED de alto impacto, contradições OPEN, agrupamentos UNRESOLVED, abas ou regiões sem cobertura, revisões abertas.", "skill": "erp-reverse-engineering" },
+    { "id": "route", "description": "Rotear cada lacuna pela escada de escalonamento.", "gate": "policies/escalation.policy.json" },
+    { "id": "dedupe", "description": "Agrupar perguntas equivalentes por family_key; uma pergunta por decisão." },
+    { "id": "rank", "description": "Ordenar por impacto e por quantos registros dependem da resposta." }
+  ],
+  "outputs": [
+    { "name": "gaps", "description": "Lista de lacunas com rota, motivo e o que seria necessário para fechá-las." },
+    { "name": "questions", "description": "Perguntas humanas já deduplicadas, com contexto e alternativas." },
+    { "name": "human_dependency", "description": "Fração de itens que dependem de pessoa, para acompanhar a redução ao longo do tempo." }
+  ],
+  "mutates_knowledge": true,
+  "escalates_to_human": true,
+  "policies": ["policies/evidence-discipline.md", "policies/human-escalation.md", "policies/escalation.policy.json"]
+}

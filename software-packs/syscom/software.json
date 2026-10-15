@@ -1,0 +1,15 @@
+{
+  "software_id": "syscom",
+  "display_name": "SYSCOM",
+  "category": "erp",
+  "vendor": "MR Sistemas",
+  "source_availability": {
+    "source_code": "unknown",
+    "database": "unknown",
+    "runtime": "unknown",
+    "documentation": "unknown",
+    "screenshots": "available",
+    "release_notes": "unknown"
+  },
+  "notes": "Primeiro caso de treino e validação do agente. Disponibilidade conferida na auditoria de 2026-10-14: há um acervo de capturas de tela no workspace. As demais fontes não foram verificadas e ficam 'unknown'."
+}

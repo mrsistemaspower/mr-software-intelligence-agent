@@ -1,0 +1,19 @@
+{
+  "collection": "releases",
+  "records": [
+    {
+      "id": "rel:save-renamed",
+      "from_version": { "label": "1.0", "source_id": "src:manual-v10" },
+      "to_version": { "label": "1.1", "source_id": "src:notes-v11" },
+      "kind": "renamed",
+      "subject": { "ref": "scr:posting-window", "descriptor": "O botão Save passou a se chamar Post." },
+      "detected_by": { "method": "release-notes", "source_ids": ["src:notes-v11"] },
+      "impact": { "action": "REVALIDATE", "affected_refs": ["int:save-persists"] },
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.95,
+        "provenance": [{ "source_id": "src:notes-v11", "evidence_id": "evd:notes-save-renamed", "relation": "direct", "source_sha256": "e5f6071829304152e5f6071829304152e5f6071829304152e5f6071829304152" }]
+      }
+    }
+  ]
+}

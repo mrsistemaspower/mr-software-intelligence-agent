@@ -1,0 +1,18 @@
+{
+  "id": "documentation",
+  "source_kind": "documentation",
+  "status": "contract",
+  "summary": "Manuais, guias e documentos existentes sobre o software, em arquivos.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["text", "statement", "structure"],
+  "read_only": true,
+  "requires_capabilities": ["file-read", "long-context"],
+  "safety": {
+    "requires_human_authorization": false,
+    "notes": "Cada trecho extraído registra a versão do documento. Documentação pode estar desatualizada: o que ela afirma é evidência do que o documento diz, não do que o software faz."
+  },
+  "limits": [
+    "Documento sem versão identificável gera confiança menor.",
+    "Afirmação de documento que diverge do observado abre contradição, não substitui o observado."
+  ]
+}

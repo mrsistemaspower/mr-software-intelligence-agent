@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:escalation-policy:1",
+  "title": "EscalationPolicy",
+  "description": "Parâmetros da escada de escalonamento. Lidos por core/escalation.py. Humanos respondem somente o que a IA não consegue resolver de maneira segura.",
+  "type": "object",
+  "required": ["version", "principle", "ladder", "routes", "thresholds", "impact_rules"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "principle": { "type": "string", "minLength": 1 },
+    "ladder": {
+      "description": "Ordem em que o agente tenta resolver um item antes de escalar para humano.",
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["step", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "step": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/ladderStep" },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "routes": {
+      "type": "object",
+      "required": ["AI_RECHECK", "SOURCE_GAP", "HUMAN_DECISION", "HUMAN_VALIDATION"],
+      "additionalProperties": false,
+      "properties": {
+        "AI_RECHECK": { "$ref": "#/$defs/route" },
+        "SOURCE_GAP": { "$ref": "#/$defs/route" },
+        "HUMAN_DECISION": { "$ref": "#/$defs/route" },
+        "HUMAN_VALIDATION": { "$ref": "#/$defs/route" }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "required": ["low_below", "high_from"],
+      "additionalProperties": false,
+      "properties": {
+        "low_below": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence" },
+        "high_from": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence" }
+      }
+    },
+    "impact_rules": {
+      "type": "object",
+      "required": ["high_requires_validation"],
+      "additionalProperties": false,
+      "properties": { "high_requires_validation": { "type": "boolean" } }
+    }
+  },
+  "$defs": {
+    "route": {
+      "type": "object",
+      "required": ["when", "resolved_by", "requires_named_person"],
+      "additionalProperties": false,
+      "properties": {
+        "when": { "type": "string", "minLength": 1 },
+        "resolved_by": { "type": "string", "minLength": 1 },
+        "requires_named_person": { "type": "boolean" }
+      }
+    }
+  }
+}

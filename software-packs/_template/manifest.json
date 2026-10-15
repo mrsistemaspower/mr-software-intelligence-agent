@@ -1,0 +1,30 @@
+{
+  "pack_format": "1",
+  "software_id": "template-software",
+  "display_name": "Template Software",
+  "role": "template",
+  "external_workspace": {
+    "mode": "embedded",
+    "workspace_id": "pack",
+    "access": "read-only",
+    "locator": { "resolution": "none" }
+  },
+  "knowledge_ownership": {
+    "owner": "MR Sistemas",
+    "canonical_location": "this-pack",
+    "pack_contains": ["manifest", "metadata"],
+    "duplication_policy": "forbidden"
+  },
+  "integration": {
+    "status": "not-applicable",
+    "notes": "Modelo para criar um pacote. Troque software_id, display_name, role e isolation.leak_terms antes de usar."
+  },
+  "collections": [],
+  "isolation": {
+    "leak_terms": {
+      "identity": ["template-software"],
+      "domain": []
+    }
+  },
+  "created_at": "2026-10-14"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "ask",
+  "verb": "ask",
+  "summary": "Responde a uma pergunta de suporte ('estou na tela X e aconteceu Y, o que faço?') combinando tela, fluxo, regras, erros conhecidos, versão e evidência, sem inventar o que falta.",
+  "inputs": [
+    { "name": "software", "required": true, "description": "software_id do pacote." },
+    { "name": "question", "required": true, "description": "A pergunta ou o relato do problema, nas palavras de quem pergunta." },
+    { "name": "screen", "required": false, "description": "Tela em que a pessoa está, quando souber." },
+    { "name": "version", "required": false, "description": "Versão do software em uso. Sem ela, a resposta avisa que o conhecimento pode não valer para a versão." }
+  ],
+  "skills": ["troubleshooting"],
+  "steps": [
+    { "id": "locate-context", "description": "Localizar tela, fluxo e regras relacionados ao relato; filtrar por versão.", "skill": "troubleshooting" },
+    { "id": "exclude-unusable", "description": "Excluir do apoio autoritativo registros em quarentena e regras de alto impacto não validadas; mencioná-los como discordância ou incerteza.", "gate": "policies/evidence-discipline.md" },
+    { "id": "compose-answer", "description": "Compor a resposta: situação entendida, causas prováveis ordenadas, passos sugeridos, o que não se sabe.", "skill": "troubleshooting" },
+    { "id": "suggest-escalation", "description": "Se a resposta depende de lacuna que só uma pessoa fecha, indicar a quem recorrer; não gravar nada." }
+  ],
+  "outputs": [
+    { "name": "answer", "description": "Resposta com citações a registros, status e confiança." },
+    { "name": "unknowns", "description": "O que faltou para responder com segurança." }
+  ],
+  "mutates_knowledge": false,
+  "escalates_to_human": false,
+  "policies": ["policies/evidence-discipline.md", "policies/human-escalation.md", "policies/safety-and-isolation.md"]
+}

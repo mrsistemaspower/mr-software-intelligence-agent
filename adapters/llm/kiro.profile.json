@@ -1,0 +1,23 @@
+{
+  "id": "kiro",
+  "provider": "Kiro",
+  "interface_kind": "agent-ide",
+  "instruction_entrypoint": "AGENT.md",
+  "loading": {
+    "method": "Arquivo de steering do workspace que inclui AGENT.md por referência de arquivo, mantendo uma única fonte de instruções.",
+    "example_file": "adapters/llm/kiro/steering.example.md"
+  },
+  "required_capabilities": ["file-read", "file-write", "shell", "long-context", "structured-output"],
+  "tool_mapping": {
+    "read-file": "Ferramenta de leitura de arquivos do IDE.",
+    "search": "Ferramentas de busca por nome e por conteúdo do IDE.",
+    "write-file": "Ferramentas de criação e edição de arquivos do IDE.",
+    "run-command": "Terminal do IDE.",
+    "fetch-web": "Ferramenta de busca e leitura web do IDE."
+  },
+  "known_limits": [
+    "Perfil não verificado em campo (status draft).",
+    "A saída do terminal do IDE pode chegar truncada ou apenas como eco do comando; para resultados longos, gravar em arquivo temporário e ler com a ferramenta de leitura."
+  ],
+  "status": "draft"
+}

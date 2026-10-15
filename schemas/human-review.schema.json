@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:human-review:1",
+  "title": "HumanReview",
+  "description": "Um item de revisão com rota explícita. As quatro rotas: AI_RECHECK (reler a evidência existente), SOURCE_GAP (falta fonte), HUMAN_DECISION (escolha que a evidência não resolve), HUMAN_VALIDATION (confirmar uma inferência). Rotas humanas exigem o registro do que já foi tentado.",
+  "type": "object",
+  "required": ["id", "route", "state", "subject_refs", "question", "rationale"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^rev:" },
+    "route": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/route" },
+    "state": { "enum": ["OPEN", "ANSWERED", "DISMISSED"] },
+    "subject_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" }
+    },
+    "question": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1 },
+    "family_key": { "type": "string", "minLength": 1 },
+    "attempted_before": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "outcome"],
+        "additionalProperties": false,
+        "properties": {
+          "step": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/ladderStep" },
+          "outcome": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "recheck": {
+      "type": "object",
+      "required": ["plan"],
+      "additionalProperties": false,
+      "properties": { "plan": { "type": "string", "minLength": 1 } }
+    },
+    "needed_source": {
+      "type": "object",
+      "required": ["kind", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sourceKind" },
+        "description": { "type": "string", "minLength": 1 }
+      }
+    },
+    "options": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "hypothesis_ref": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" },
+    "answer": {
+      "type": "object",
+      "required": ["actor", "answered_by", "answered_at", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "actor": { "enum": ["person", "agent", "tool"] },
+        "answered_by": { "type": "string", "minLength": 1 },
+        "answered_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" },
+        "text": { "type": "string", "minLength": 1 },
+        "verbatim_excerpt": { "type": "string", "minLength": 1 },
+        "effects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ref", "effect"],
+            "additionalProperties": false,
+            "properties": {
+              "ref": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" },
+              "effect": { "enum": ["validates", "refines", "contradicts", "withholds", "resolves", "closes-gap"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "route": { "const": "AI_RECHECK" } }, "required": ["route"] },
+      "then": { "required": ["recheck"] }
+    },
+    {
+      "if": { "properties": { "route": { "const": "SOURCE_GAP" } }, "required": ["route"] },
+      "then": { "required": ["needed_source"] }
+    },
+    {
+      "if": { "properties": { "route": { "const": "HUMAN_DECISION" } }, "required": ["route"] },
+      "then": { "required": ["options", "attempted_before"], "properties": { "attempted_before": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "route": { "const": "HUMAN_VALIDATION" } }, "required": ["route"] },
+      "then": { "required": ["hypothesis_ref", "attempted_before"], "properties": { "attempted_before": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "state": { "const": "ANSWERED" } }, "required": ["state"] },
+      "then": { "required": ["answer"] }
+    },
+    {
+      "if": { "properties": { "state": { "const": "OPEN" } }, "required": ["state"] },
+      "then": { "not": { "required": ["answer"] } }
+    },
+    {
+      "if": {
+        "properties": { "route": { "enum": ["HUMAN_DECISION", "HUMAN_VALIDATION"] }, "state": { "const": "ANSWERED" } },
+        "required": ["route", "state"]
+      },
+      "then": { "properties": { "answer": { "properties": { "actor": { "const": "person" } } } } }
+    }
+  ]
+}

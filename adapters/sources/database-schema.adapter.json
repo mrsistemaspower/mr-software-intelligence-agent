@@ -1,0 +1,18 @@
+{
+  "id": "database-schema",
+  "source_kind": "database-schema",
+  "status": "contract",
+  "summary": "Esquema do banco de dados: tabelas, colunas, chaves, restrições, relações.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["structure", "metadata"],
+  "read_only": true,
+  "requires_capabilities": ["file-read", "shell"],
+  "safety": {
+    "requires_human_authorization": true,
+    "notes": "Somente metadados e esquema. Nunca lê linhas de dados. Conexão somente leitura, em cópia ou ambiente de teste. A cadeia de conexão fica em variável de ambiente e nunca aparece em registros."
+  },
+  "limits": [
+    "Esquema mostra estrutura, não regra de negócio. Restrições do banco são evidência de regra, não a regra inteira.",
+    "Nomes de colunas raramente bastam para inferir significado de negócio."
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "collection": "screens",
+  "records": [
+    {
+      "id": "scr:posting-window",
+      "name": "Posting Window",
+      "surface_kind": "window",
+      "navigation_path": ["Accounting", "Posting"],
+      "captures": ["src:shot-posting-01", "src:shot-posting-02"],
+      "grouping": {
+        "status": "UNRESOLVED",
+        "rationale": "O título difere entre as capturas ('Posting Window' e 'Posting'). Não se sabe se são duas versões, dois estados ou uma leitura truncada."
+      },
+      "elements": [
+        {
+          "key": "account",
+          "kind": "field",
+          "label": "Account",
+          "epistemic": {
+            "status": "OBSERVED",
+            "confidence": 0.95,
+            "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-account-field", "relation": "direct" }]
+          }
+        },
+        {
+          "key": "account-lookup",
+          "kind": "action",
+          "label": "...",
+          "epistemic": {
+            "status": "OBSERVED",
+            "confidence": 0.95,
+            "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-account-field", "relation": "direct" }]
+          }
+        },
+        {
+          "key": "cost-center",
+          "kind": "field",
+          "label": "Cost Center",
+          "epistemic": {
+            "status": "OBSERVED",
+            "confidence": 0.9,
+            "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-costcenter-field", "relation": "direct" }]
+          }
+        },
+        {
+          "key": "cost-center-lookup",
+          "kind": "action",
+          "label": "...",
+          "epistemic": {
+            "status": "OBSERVED",
+            "confidence": 0.9,
+            "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-costcenter-field", "relation": "direct" }]
+          }
+        },
+        {
+          "key": "save",
+          "kind": "action",
+          "label": "Save",
+          "observed_state": { "enabled": true },
+          "epistemic": {
+            "status": "OBSERVED",
+            "confidence": 0.93,
+            "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-save-button", "relation": "direct" }],
+            "valid_in_versions": ["1.0"]
+          }
+        }
+      ],
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.85,
+        "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-title", "relation": "direct" }]
+      }
+    },
+    {
+      "id": "scr:account-picker",
+      "name": "Account Picker",
+      "surface_kind": "dialog",
+      "navigation_path": ["Accounting", "Posting", "Account"],
+      "captures": ["src:shot-picker-01"],
+      "grouping": {
+        "status": "DECIDED",
+        "rationale": "Uma única captura.",
+        "decided_by": "Maria Example",
+        "decided_at": "2026-10-02T09:00:00-03:00"
+      },
+      "elements": [
+        {
+          "key": "account-list",
+          "kind": "grid",
+          "label": null,
+          "epistemic": {
+            "status": "OBSERVED",
+            "confidence": 0.9,
+            "provenance": [{ "source_id": "src:shot-picker-01", "evidence_id": "evd:picker-title", "relation": "direct" }]
+          }
+        }
+      ],
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.96,
+        "provenance": [{ "source_id": "src:shot-picker-01", "evidence_id": "evd:picker-title", "relation": "direct" }]
+      }
+    }
+  ]
+}

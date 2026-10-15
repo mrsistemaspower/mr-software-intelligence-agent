@@ -1,0 +1,35 @@
+{
+  "collection": "contradictions",
+  "records": [
+    {
+      "id": "ctr:delete-capability",
+      "topic": "A janela de lançamento permite excluir um lançamento?",
+      "positions": [
+        { "ref": "fct:manual-says-delete", "summary": "O manual 1.0 afirma que sim." },
+        { "ref": "fct:capture-no-delete", "summary": "Nenhum botão Delete aparece na captura." }
+      ],
+      "status": "OPEN",
+      "detected_by": { "actor": "ai", "name": "reader-agent" },
+      "detected_at": "2026-10-04T09:00:00-03:00"
+    },
+    {
+      "id": "ctr:save-label",
+      "topic": "Nome do botão de gravação",
+      "positions": [
+        { "ref": "scr:posting-window", "summary": "A captura da versão 1.0 mostra 'Save'." },
+        { "ref": "fct:button-renamed", "summary": "As notas da versão 1.1 dizem 'Post'." }
+      ],
+      "status": "RESOLVED",
+      "detected_by": { "actor": "ai", "name": "reader-agent" },
+      "detected_at": "2026-10-06T09:00:00-03:00",
+      "resolution": {
+        "decided_by": "Maria Example",
+        "decided_at": "2026-10-06T11:00:00-03:00",
+        "method": "superseded-by-release",
+        "chosen_ref": "fct:button-renamed",
+        "rationale": "Não há conflito real: cada posição vale para uma versão. A posição da versão 1.1 passa a valer para a versão atual.",
+        "history_preserved": true
+      }
+    }
+  ]
+}

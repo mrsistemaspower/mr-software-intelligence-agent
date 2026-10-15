@@ -1,0 +1,27 @@
+{
+  "id": "compare",
+  "verb": "compare",
+  "summary": "Compara duas versões do software, calcula o conhecimento afetado e reanalisa só as regiões impactadas.",
+  "inputs": [
+    { "name": "software", "required": true, "description": "software_id do pacote." },
+    { "name": "from_version", "required": true, "description": "Versão de referência." },
+    { "name": "to_version", "required": true, "description": "Versão nova." }
+  ],
+  "skills": ["change-intelligence", "documentation-mining"],
+  "steps": [
+    { "id": "collect-evidence", "description": "Inventariar fontes da versão nova (inclusive notas de versão) e comparar hashes com as da versão anterior.", "skill": "change-intelligence" },
+    { "id": "detect-changes", "description": "Registrar mudanças como release-change, por notas de versão, diferença de evidência ou relato humano.", "skill": "change-intelligence" },
+    { "id": "calculate-impact", "description": "Calcular os registros afetados (assunto, referências declaradas e dependentes).", "skill": "change-intelligence", "gate": "core.impact.plan_reanalysis" },
+    { "id": "reanalyze-affected", "description": "Reanalisar só as regiões afetadas; invalidar ou revalidar fatos conforme a ação.", "skill": "change-intelligence" },
+    { "id": "route-reviews", "description": "Abrir revisões para validações que perderam a base; validação humana vale para a versão em que foi dada.", "gate": "policies/escalation.policy.json" },
+    { "id": "update-docs", "description": "Marcar a documentação derivada como desatualizada nas regiões afetadas." }
+  ],
+  "outputs": [
+    { "name": "changes", "description": "Registros release-change." },
+    { "name": "impact_plan", "description": "Para cada registro afetado, a ação: REVALIDATE, REANALYZE ou INVALIDATE." },
+    { "name": "reviews", "description": "Revisões abertas por perda de validação." }
+  ],
+  "mutates_knowledge": true,
+  "escalates_to_human": true,
+  "policies": ["policies/evidence-discipline.md", "policies/human-escalation.md", "policies/safety-and-isolation.md", "policies/escalation.policy.json"]
+}

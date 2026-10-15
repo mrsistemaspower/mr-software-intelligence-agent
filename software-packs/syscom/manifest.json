@@ -1,0 +1,47 @@
+{
+  "pack_format": "1",
+  "software_id": "syscom",
+  "display_name": "SYSCOM",
+  "role": "first_validation_case",
+  "validation_case_index": 1,
+  "external_workspace": {
+    "mode": "external",
+    "workspace_id": "syscom-workspace",
+    "access": "read-only",
+    "locator": {
+      "resolution": "env",
+      "name": "MR_SYSCOM_WORKSPACE",
+      "config_file": "local.config.json"
+    }
+  },
+  "knowledge_ownership": {
+    "owner": "MR Sistemas",
+    "canonical_location": "external-workspace",
+    "pack_contains": ["manifest", "metadata", "integration-reference"],
+    "duplication_policy": "forbidden"
+  },
+  "integration": {
+    "status": "reference-only",
+    "reference_file": "integration.reference.json",
+    "notes": "Sem leitura nem escrita automática. O conhecimento real permanece no workspace externo; este pacote só o referencia."
+  },
+  "collections": [],
+  "isolation": {
+    "leak_terms": {
+      "identity": ["syscom", "mr-syscom"],
+      "domain": [
+        "Cadastro de Identificação",
+        "Gerenciar Nota Fiscal",
+        "Classificação de Produtos",
+        "Cadastro de Fabricante",
+        "Procura de Produtos",
+        "Cadastro de Almoxarifado",
+        "Gerenciamento de NFe Destinadas",
+        "STANDARD_CODE_FIELD",
+        "STANDARD_LOOKUP",
+        "k3-transfer"
+      ]
+    }
+  },
+  "created_at": "2026-10-14"
+}

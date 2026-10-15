@@ -1,0 +1,18 @@
+{
+  "id": "dokuwiki",
+  "source_kind": "wiki",
+  "status": "contract",
+  "summary": "Páginas de uma instalação de DokuWiki com documentação do software, lidas por exportação ou por acesso de leitura.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["text", "structure", "metadata"],
+  "read_only": true,
+  "requires_capabilities": ["web", "file-read"],
+  "safety": {
+    "requires_human_authorization": false,
+    "notes": "Somente leitura. Nunca edita páginas, nunca cria usuários, nunca usa credenciais de escrita. Credenciais de leitura ficam em variável de ambiente, nunca em registros."
+  },
+  "limits": [
+    "O hash de uma página é o hash do texto exportado na data da leitura.",
+    "Histórico de revisões da wiki é metadado: não substitui o versionamento do software."
+  ]
+}

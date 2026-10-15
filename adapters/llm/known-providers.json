@@ -1,0 +1,4 @@
+{
+  "description": "Nomes de provedores e produtos de modelo de linguagem. Só esta camada pode nomeá-los. O teste de neutralidade de provedor proíbe esses termos no núcleo, nos schemas, nas skills, nos workflows, nas políticas e em AGENT.md.",
+  "terms": ["claude", "anthropic", "openai", "chatgpt", "gpt-4", "gpt-5", "gemini", "kiro", "copilot"]
+}

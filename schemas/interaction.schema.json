@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:interaction:1",
+  "title": "Interaction",
+  "description": "O que acontece quando um elemento é acionado. Estado visível numa captura não é comportamento: sem teste em execução, o efeito nunca é OBSERVED.",
+  "type": "object",
+  "required": ["id", "screen_id", "trigger", "effect", "runtime_tested", "epistemic"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^int:" },
+    "screen_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^scr:" },
+    "trigger": {
+      "type": "object",
+      "required": ["element_key", "event"],
+      "additionalProperties": false,
+      "properties": {
+        "element_key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "event": { "enum": ["click", "double-click", "enter", "key", "select", "focus", "open", "submit", "other"] },
+        "detail": { "type": "string", "minLength": 1 }
+      }
+    },
+    "effect": {
+      "type": "object",
+      "required": ["kind", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["opens", "navigates", "persists", "modifies-state", "shows-message", "closes", "unknown"] },
+        "target_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" },
+        "description": { "type": "string", "minLength": 1 }
+      }
+    },
+    "runtime_tested": { "type": "boolean" },
+    "epistemic": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/epistemic" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "runtime_tested": { "const": false } }, "required": ["runtime_tested"] },
+      "then": {
+        "properties": {
+          "epistemic": { "properties": { "status": { "enum": ["INFERRED", "VALIDATED"] } } }
+        }
+      }
+    }
+  ]
+}

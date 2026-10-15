@@ -1,0 +1,24 @@
+{
+  "id": "local",
+  "provider": "Modelos locais e futuros",
+  "interface_kind": "local-runtime",
+  "instruction_entrypoint": "AGENT.md",
+  "loading": {
+    "method": "Incluir o conteúdo de AGENT.md como instrução de sistema do runtime local. Um laço de ferramentas simples (leitura, busca, escrita, comando) implementa as ferramentas abstratas.",
+    "example_file": "adapters/llm/local/instructions.example.md"
+  },
+  "required_capabilities": ["file-read", "structured-output"],
+  "tool_mapping": {
+    "read-file": "Função do laço de ferramentas que lê um arquivo do workspace.",
+    "search": "Função do laço de ferramentas que busca texto em arquivos.",
+    "write-file": "Função do laço de ferramentas que grava arquivos apenas no diretório de execução do agente.",
+    "run-command": "Função do laço de ferramentas, restrita a uma lista de comandos permitidos.",
+    "fetch-web": "Ausente por padrão; habilitar só se o ambiente permitir."
+  },
+  "known_limits": [
+    "Perfil não verificado em campo (status draft).",
+    "Sem visão por padrão: a leitura de capturas depende de um modelo com visão ou de uma etapa externa cujo resultado entra como evidência com actor 'tool' ou 'ai'.",
+    "Janelas de contexto menores exigem consulta por registro e resumos derivados do pacote."
+  ],
+  "status": "draft"
+}

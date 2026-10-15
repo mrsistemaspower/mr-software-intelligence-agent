@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:screen:1",
+  "title": "Screen",
+  "description": "Uma superfície de interação do software (janela, página, diálogo). Captura não é tela: uma tela pode ter várias capturas, e o agrupamento é uma decisão registrada.",
+  "type": "object",
+  "required": ["id", "name", "surface_kind", "captures", "grouping", "epistemic"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^scr:" },
+    "name": { "type": "string", "minLength": 1 },
+    "surface_kind": { "enum": ["window", "dialog", "page", "tab", "report", "dashboard", "menu", "unknown"] },
+    "navigation_path": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "captures": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^src:" }
+    },
+    "grouping": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["DECIDED", "UNRESOLVED"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "decided_by": { "type": "string", "minLength": 1 },
+        "decided_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "DECIDED" } }, "required": ["status"] },
+          "then": { "required": ["decided_by", "decided_at"] }
+        }
+      ]
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "kind", "epistemic"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+          "kind": { "enum": ["field", "action", "tab", "grid", "group", "message", "menu", "unknown"] },
+          "label": { "type": ["string", "null"] },
+          "observed_state": {
+            "description": "Estado na captura. Não é o comportamento nem o estado padrão. null = não observável.",
+            "type": "object"
+          },
+          "epistemic": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/epistemic" }
+        }
+      }
+    },
+    "epistemic": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/epistemic" }
+  }
+}

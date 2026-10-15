@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:source:1",
+  "title": "Source",
+  "description": "Uma fonte registrada. A fonte é só localizada, nunca copiada para o pacote. O hash, quando existe, é o ponto de integridade.",
+  "type": "object",
+  "required": ["id", "kind", "locator", "contains_sensitive_data"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^src:" },
+    "kind": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sourceKind" },
+    "role": { "enum": ["primary", "supplementary", "alternate-state", "error-state", "index", "unknown"] },
+    "locator": {
+      "type": "object",
+      "required": ["workspace", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "workspace": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "path": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/relativePath" }
+      }
+    },
+    "sha256": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" },
+    "captured_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" },
+    "contains_sensitive_data": {
+      "description": "null = ainda não conferido por pessoa. null não equivale a false.",
+      "type": ["boolean", "null"]
+    },
+    "description": { "type": "string", "minLength": 1 }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:software-pack-manifest:1",
+  "title": "SoftwarePackManifest",
+  "description": "Contrato público de um Software Knowledge Pack. Não contém caminho absoluto: o workspace externo é resolvido por variável de ambiente ou por configuração local não versionada.",
+  "type": "object",
+  "required": ["pack_format", "software_id", "display_name", "role", "external_workspace", "knowledge_ownership", "integration", "collections", "isolation", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "pack_format": { "const": "1" },
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "display_name": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/name" },
+    "role": { "enum": ["first_validation_case", "validation_case", "production", "fixture", "template"] },
+    "validation_case_index": { "type": "integer", "minimum": 1 },
+    "external_workspace": {
+      "type": "object",
+      "required": ["mode", "workspace_id", "access", "locator"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "enum": ["external", "embedded"] },
+        "workspace_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "access": { "const": "read-only" },
+        "locator": {
+          "type": "object",
+          "required": ["resolution"],
+          "additionalProperties": false,
+          "properties": {
+            "resolution": { "enum": ["env", "local-config", "none"] },
+            "name": { "type": "string", "minLength": 1 },
+            "config_file": { "type": "string", "minLength": 1 }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "external" } }, "required": ["mode"] },
+          "then": { "properties": { "locator": { "properties": { "resolution": { "enum": ["env", "local-config"] } } } } }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "embedded" } }, "required": ["mode"] },
+          "then": {
+            "properties": {
+              "workspace_id": { "const": "pack" },
+              "locator": { "properties": { "resolution": { "const": "none" } } }
+            }
+          }
+        }
+      ]
+    },
+    "knowledge_ownership": {
+      "type": "object",
+      "required": ["owner", "canonical_location", "pack_contains", "duplication_policy"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "canonical_location": { "enum": ["external-workspace", "this-pack"] },
+        "pack_contains": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["manifest", "metadata", "integration-reference", "knowledge-records", "documentation"] }
+        },
+        "duplication_policy": { "enum": ["forbidden", "derived-only"] }
+      }
+    },
+    "integration": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["not-applicable", "reference-only", "planned", "active"] },
+        "reference_file": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "enum": ["reference-only", "planned", "active"] } }, "required": ["status"] },
+          "then": { "required": ["reference_file"] }
+        }
+      ]
+    },
+    "collections": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": ["sources", "evidence", "facts", "screens", "interactions", "lookups", "workflows", "business-rules", "contradictions", "reviews", "releases"]
+      }
+    },
+    "isolation": {
+      "type": "object",
+      "required": ["leak_terms"],
+      "additionalProperties": false,
+      "properties": {
+        "leak_terms": {
+          "description": "Termos que identificam este software. Não podem aparecer nos contratos genéricos nem em outros pacotes.",
+          "type": "object",
+          "required": ["identity", "domain"],
+          "additionalProperties": false,
+          "properties": {
+            "identity": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 3 } },
+            "domain": { "type": "array", "items": { "type": "string", "minLength": 3 } }
+          }
+        }
+      }
+    },
+    "created_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/date" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "role": { "const": "first_validation_case" } }, "required": ["role"] },
+      "then": { "required": ["validation_case_index"], "properties": { "validation_case_index": { "const": 1 } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "knowledge_ownership": {
+            "properties": { "canonical_location": { "const": "external-workspace" } },
+            "required": ["canonical_location"]
+          }
+        },
+        "required": ["knowledge_ownership"]
+      },
+      "then": { "properties": { "collections": { "maxItems": 0 } } }
+    }
+  ]
+}

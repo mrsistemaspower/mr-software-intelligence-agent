@@ -1,0 +1,25 @@
+{
+  "collection": "lookups",
+  "records": [
+    {
+      "id": "lku:account",
+      "from": { "screen_id": "scr:posting-window", "element_key": "account" },
+      "target": { "status": "KNOWN", "ref": "scr:account-picker" },
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.95,
+        "provenance": [{ "source_id": "src:runtime-session-01", "evidence_id": "evd:runtime-account-click", "relation": "direct" }]
+      }
+    },
+    {
+      "id": "lku:cost-center",
+      "from": { "screen_id": "scr:posting-window", "element_key": "cost-center" },
+      "target": { "status": "UNKNOWN", "hint": "O botão '...' ao lado de Cost Center não foi acionado em nenhuma fonte." },
+      "epistemic": {
+        "status": "OBSERVED",
+        "confidence": 0.9,
+        "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-costcenter-field", "relation": "direct" }]
+      }
+    }
+  ]
+}

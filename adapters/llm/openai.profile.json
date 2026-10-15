@@ -1,0 +1,23 @@
+{
+  "id": "openai",
+  "provider": "OpenAI",
+  "interface_kind": "chat",
+  "instruction_entrypoint": "AGENT.md",
+  "loading": {
+    "method": "Colar o conteúdo de AGENT.md nas instruções do projeto ou do assistente, e anexar os arquivos do pacote como conhecimento. Em ambientes de agente com acesso ao workspace, usar o arquivo de instruções de repositório da ferramenta, apontando para AGENT.md.",
+    "example_file": "adapters/llm/openai/instructions.example.md"
+  },
+  "required_capabilities": ["file-read", "structured-output", "long-context", "vision"],
+  "tool_mapping": {
+    "read-file": "Arquivo anexado à conversa, ou leitura nativa quando há acesso ao workspace.",
+    "search": "Busca nos arquivos anexados ou busca nativa do ambiente de agente.",
+    "write-file": "Entrega do arquivo gerado para o usuário salvar, ou edição nativa em ambiente de agente.",
+    "run-command": "Interpretador de código do ambiente, ou comando nativo em ambiente de agente.",
+    "fetch-web": "Navegação nativa do ambiente, quando habilitada."
+  },
+  "known_limits": [
+    "Perfil não verificado em campo (status draft).",
+    "No modo conversa o pacote chega por anexos; pacotes grandes precisam ser consultados por registro, não carregados inteiros."
+  ],
+  "status": "draft"
+}

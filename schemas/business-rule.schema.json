@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:business-rule:1",
+  "title": "BusinessRule",
+  "description": "Uma regra de negócio do software alvo. O campo 'impact' é explícito: regras de alto impacto não podem sustentar uma resposta autoritativa sem validação humana.",
+  "type": "object",
+  "required": ["id", "statement", "kind", "impact", "applies_to", "epistemic"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^rul:" },
+    "statement": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["validation", "calculation", "constraint", "authorization", "side-effect", "derivation", "other"] },
+    "impact": { "enum": ["low", "normal", "high"] },
+    "applies_to": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" }
+    },
+    "epistemic": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/epistemic" }
+  }
+}

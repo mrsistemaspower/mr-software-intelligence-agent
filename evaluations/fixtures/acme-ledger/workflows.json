@@ -1,0 +1,21 @@
+{
+  "collection": "workflows",
+  "records": [
+    {
+      "id": "wfl:post-entry",
+      "name": "Registrar um lançamento",
+      "outcome": "O lançamento fica persistido.",
+      "steps": [
+        { "order": 1, "description": "Escolher a conta pelo seletor.", "screen_id": "scr:posting-window", "interaction_id": "int:account-lookup-opens" },
+        { "order": 2, "description": "Informar o centro de custo.", "screen_id": "scr:posting-window" },
+        { "order": 3, "description": "Gravar o lançamento.", "screen_id": "scr:posting-window", "interaction_id": "int:save-persists", "rule_ids": ["rul:balance"] }
+      ],
+      "epistemic": {
+        "status": "INFERRED",
+        "confidence": 0.6,
+        "provenance": [{ "source_id": "src:shot-posting-01", "evidence_id": "evd:posting-save-button", "relation": "derived" }],
+        "basis": "Composto a partir de campos observados e de um comportamento de gravação ainda inferido."
+      }
+    }
+  ]
+}

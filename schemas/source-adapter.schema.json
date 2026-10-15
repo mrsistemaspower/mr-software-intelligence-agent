@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:source-adapter:1",
+  "title": "SourceAdapter",
+  "description": "Descritor de um adaptador de fonte. Todo adaptador é somente leitura, determinístico e emite registros conformes aos schemas de Source e Evidence.",
+  "type": "object",
+  "required": ["id", "source_kind", "status", "operations", "produces", "read_only", "requires_capabilities", "safety"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "source_kind": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sourceKind" },
+    "status": { "enum": ["contract", "planned", "implemented"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["describe", "inventory", "fingerprint", "extract", "coverage"] }
+    },
+    "produces": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/evidenceKind" }
+    },
+    "read_only": { "const": true },
+    "requires_capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/capability" }
+    },
+    "safety": {
+      "type": "object",
+      "required": ["requires_human_authorization", "notes"],
+      "additionalProperties": false,
+      "properties": {
+        "requires_human_authorization": { "type": "boolean" },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "limits": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

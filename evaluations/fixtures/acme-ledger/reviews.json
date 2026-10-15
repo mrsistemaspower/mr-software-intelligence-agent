@@ -1,0 +1,58 @@
+{
+  "collection": "reviews",
+  "records": [
+    {
+      "id": "rev:recheck-alt-title",
+      "route": "AI_RECHECK",
+      "state": "OPEN",
+      "subject_refs": ["evd:posting-alt-title"],
+      "question": "O título da segunda captura está truncado pela largura da janela?",
+      "rationale": "A confiança da leitura é 0.7 e a borda direita da barra de título está cortada. Uma releitura focada da mesma captura pode resolver.",
+      "recheck": { "plan": "Reler a região da barra de título de src:shot-posting-02 em resolução máxima." }
+    },
+    {
+      "id": "rev:gap-cost-center",
+      "route": "SOURCE_GAP",
+      "state": "OPEN",
+      "subject_refs": ["lku:cost-center"],
+      "question": "Para onde leva o botão '...' ao lado de Cost Center?",
+      "rationale": "Nenhuma captura, texto ou sessão mostra o destino. Releitura não resolve: falta fonte.",
+      "needed_source": { "kind": "runtime", "description": "Sessão em ambiente de teste acionando o botão '...' ao lado de Cost Center." }
+    },
+    {
+      "id": "rev:decide-grouping",
+      "route": "HUMAN_DECISION",
+      "state": "OPEN",
+      "subject_refs": ["scr:posting-window"],
+      "question": "As duas capturas são uma tela ou duas?",
+      "rationale": "Os títulos divergem e nenhuma outra evidência relaciona as capturas. A evidência não decide entre as alternativas.",
+      "family_key": "grouping:posting-window",
+      "options": ["Uma tela, dois estados", "Duas versões da mesma tela", "Duas telas diferentes"],
+      "attempted_before": [
+        { "step": "evidence-reuse", "outcome": "Os títulos divergem e as demais evidências são idênticas nas duas capturas." },
+        { "step": "relations", "outcome": "Nenhuma interação ou fluxo registrado distingue as capturas." }
+      ]
+    },
+    {
+      "id": "rev:validate-balance",
+      "route": "HUMAN_VALIDATION",
+      "state": "ANSWERED",
+      "subject_refs": ["rul:balance"],
+      "question": "Débitos e créditos precisam ser iguais antes de registrar o lançamento?",
+      "rationale": "Regra de alto impacto sustentada apenas por uma declaração de especialista.",
+      "hypothesis_ref": "rul:balance",
+      "attempted_before": [
+        { "step": "documentation", "outcome": "O manual 1.0 não menciona a regra." },
+        { "step": "evidence-reuse", "outcome": "Nenhuma captura mostra a validação." }
+      ],
+      "answer": {
+        "actor": "person",
+        "answered_by": "Maria Example",
+        "answered_at": "2026-10-05T15:30:00-03:00",
+        "text": "Sim. O sistema bloqueia o registro quando os totais diferem.",
+        "verbatim_excerpt": "bloqueia o registro quando os totais diferem",
+        "effects": [{ "ref": "rul:balance", "effect": "validates" }]
+      }
+    }
+  ]
+}

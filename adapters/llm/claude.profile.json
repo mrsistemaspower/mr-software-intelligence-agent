@@ -1,0 +1,23 @@
+{
+  "id": "claude",
+  "provider": "Anthropic",
+  "interface_kind": "agent-ide",
+  "instruction_entrypoint": "AGENT.md",
+  "loading": {
+    "method": "Arquivo de memória de projeto na raiz do workspace que aponta para AGENT.md. O nome exato do arquivo depende da ferramenta usada e deve ser confirmado nela.",
+    "example_file": "adapters/llm/claude/instructions.example.md"
+  },
+  "required_capabilities": ["file-read", "file-write", "shell", "long-context", "structured-output", "vision"],
+  "tool_mapping": {
+    "read-file": "Ferramenta nativa de leitura de arquivos do ambiente de agente.",
+    "search": "Ferramenta nativa de busca em arquivos do ambiente de agente.",
+    "write-file": "Ferramenta nativa de edição de arquivos do ambiente de agente.",
+    "run-command": "Ferramenta nativa de execução de comandos do ambiente de agente.",
+    "fetch-web": "Ferramenta nativa de busca e leitura web, quando habilitada."
+  },
+  "known_limits": [
+    "Perfil não verificado em campo (status draft).",
+    "Em modo conversa, sem acesso ao workspace, o usuário precisa anexar os arquivos do pacote."
+  ],
+  "status": "draft"
+}

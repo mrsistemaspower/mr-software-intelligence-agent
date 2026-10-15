@@ -1,0 +1,18 @@
+{
+  "id": "release-notes",
+  "source_kind": "release-notes",
+  "status": "contract",
+  "summary": "Notas de versão e históricos de mudança do software.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["text", "statement", "metadata"],
+  "read_only": true,
+  "requires_capabilities": ["file-read"],
+  "safety": {
+    "requires_human_authorization": false,
+    "notes": "Alimenta a inteligência de mudança: cada item extraído registra versão de origem e versão de destino."
+  },
+  "limits": [
+    "Notas de versão descrevem intenção do fornecedor e costumam omitir mudanças. Ausência de menção não prova ausência de mudança.",
+    "A comparação de evidências entre versões complementa as notas."
+  ]
+}

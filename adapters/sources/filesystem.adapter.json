@@ -1,0 +1,18 @@
+{
+  "id": "filesystem",
+  "source_kind": "filesystem",
+  "status": "contract",
+  "summary": "Estrutura de diretórios, nomes e metadados de arquivos do acervo ou da instalação do software.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["metadata", "structure"],
+  "read_only": true,
+  "requires_capabilities": ["file-read"],
+  "safety": {
+    "requires_human_authorization": false,
+    "notes": "Lê metadados e estrutura. Não abre conteúdo de arquivos binários sem um adaptador específico. Executáveis são tratados como arquivos: hash e metadados, nunca execução."
+  },
+  "limits": [
+    "Nome de arquivo e caminho são evidência de organização, não de significado.",
+    "Erros de codificação de nomes (caracteres trocados) são problema de leitura e não podem virar nome de entidade."
+  ]
+}

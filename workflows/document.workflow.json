@@ -1,0 +1,23 @@
+{
+  "id": "document",
+  "verb": "document",
+  "summary": "Gera documentação operacional de uma funcionalidade a partir do pacote, rotulando status e lacunas.",
+  "inputs": [
+    { "name": "software", "required": true, "description": "software_id do pacote." },
+    { "name": "target", "required": true, "description": "Funcionalidade, tela ou fluxo a documentar." },
+    { "name": "profile", "required": false, "description": "'compact' (uso) ou 'detailed' (auditoria, com evidências). Padrão: compact." }
+  ],
+  "skills": ["documentation-generation"],
+  "steps": [
+    { "id": "select-records", "description": "Selecionar os registros do alvo e seus relacionados." },
+    { "id": "render", "description": "Gerar o documento. Todo conteúdo carrega o rótulo do status; registros em quarentena e contradições abertas entram como pendências.", "skill": "documentation-generation" },
+    { "id": "check-publishable", "description": "Conferir que não há captura embutida, dado pessoal ou segredo.", "gate": "policies/safety-and-isolation.md" }
+  ],
+  "outputs": [
+    { "name": "document", "description": "Documento derivado e regenerável; nunca é fonte canônica." },
+    { "name": "pending_items", "description": "Pendências que impedem declarar a documentação completa." }
+  ],
+  "mutates_knowledge": false,
+  "escalates_to_human": false,
+  "policies": ["policies/evidence-discipline.md", "policies/safety-and-isolation.md"]
+}

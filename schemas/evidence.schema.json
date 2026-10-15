@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:evidence:1",
+  "title": "Evidence",
+  "description": "Um trecho concreto extraído de uma fonte. Evidência não tem status: ela é a matéria-prima. A confiança aqui descreve a qualidade da extração (nitidez, legibilidade).",
+  "type": "object",
+  "required": ["id", "source_id", "kind", "content", "extracted_by", "confidence"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^evd:" },
+    "source_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^src:" },
+    "locator": { "type": "string", "minLength": 1 },
+    "kind": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/evidenceKind" },
+    "content": { "type": "string", "minLength": 1 },
+    "extracted_by": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/actor" },
+    "confidence": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence" },
+    "captured_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" }
+  }
+}

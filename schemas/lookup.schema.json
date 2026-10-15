@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:lookup:1",
+  "title": "Lookup",
+  "description": "Um campo que abre uma consulta a outra superfície. Se o destino não é conhecido, o destino fica UNKNOWN e sem referência: nunca adivinhar.",
+  "type": "object",
+  "required": ["id", "from", "target", "epistemic"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^lku:" },
+    "from": {
+      "type": "object",
+      "required": ["screen_id", "element_key"],
+      "additionalProperties": false,
+      "properties": {
+        "screen_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^scr:" },
+        "element_key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["KNOWN", "PROBABLE", "UNKNOWN"] },
+        "ref": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^scr:" },
+        "hint": { "type": "string", "minLength": 1 }
+      }
+    },
+    "epistemic": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/epistemic" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "target": { "properties": { "status": { "const": "UNKNOWN" } }, "required": ["status"] } },
+        "required": ["target"]
+      },
+      "then": { "properties": { "target": { "not": { "required": ["ref"] } } } }
+    },
+    {
+      "if": {
+        "properties": { "target": { "properties": { "status": { "enum": ["KNOWN", "PROBABLE"] } }, "required": ["status"] } },
+        "required": ["target"]
+      },
+      "then": { "properties": { "target": { "required": ["ref"] } } }
+    },
+    {
+      "if": {
+        "properties": { "target": { "properties": { "status": { "const": "KNOWN" } }, "required": ["status"] } },
+        "required": ["target"]
+      },
+      "then": { "properties": { "epistemic": { "properties": { "status": { "enum": ["OBSERVED", "VALIDATED"] } } } } }
+    },
+    {
+      "if": {
+        "properties": { "target": { "properties": { "status": { "const": "PROBABLE" } }, "required": ["status"] } },
+        "required": ["target"]
+      },
+      "then": { "properties": { "epistemic": { "properties": { "status": { "const": "INFERRED" } } } } }
+    }
+  ]
+}

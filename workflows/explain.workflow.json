@@ -1,0 +1,24 @@
+{
+  "id": "explain",
+  "verb": "explain",
+  "summary": "Explica uma tela, um fluxo ou uma regra a partir do pacote, com status, proveniência e lacunas.",
+  "inputs": [
+    { "name": "software", "required": true, "description": "software_id do pacote." },
+    { "name": "target", "required": true, "description": "Id de um registro (tela, fluxo, regra) ou um nome a localizar." },
+    { "name": "audience", "required": false, "description": "'operator' (uso), 'analyst' (regras e relações) ou 'auditor' (evidências). Padrão: operator." }
+  ],
+  "skills": ["documentation-generation", "workflow-reconstruction"],
+  "steps": [
+    { "id": "resolve-target", "description": "Localizar o registro no pacote. Se o nome for ambíguo, listar as opções." },
+    { "id": "gather-context", "description": "Reunir registros relacionados: interações, lookups, regras, fluxos, contradições abertas e revisões.", "skill": "workflow-reconstruction" },
+    { "id": "compose", "description": "Compor a explicação. Cada afirmação carrega status e confiança; registros em quarentena aparecem como discordância, nunca como fato.", "skill": "documentation-generation" },
+    { "id": "state-unknowns", "description": "Listar o que o pacote não sustenta e o que faltaria para saber.", "gate": "policies/evidence-discipline.md" }
+  ],
+  "outputs": [
+    { "name": "explanation", "description": "Texto com status, confiança e proveniência por afirmação." },
+    { "name": "unknowns", "description": "Lacunas e contradições abertas relevantes ao alvo." }
+  ],
+  "mutates_knowledge": false,
+  "escalates_to_human": false,
+  "policies": ["policies/evidence-discipline.md", "policies/safety-and-isolation.md"]
+}

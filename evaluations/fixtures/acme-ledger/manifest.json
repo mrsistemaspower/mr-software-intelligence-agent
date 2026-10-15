@@ -1,0 +1,30 @@
+{
+  "pack_format": "1",
+  "software_id": "acme-ledger",
+  "display_name": "Acme Ledger",
+  "role": "fixture",
+  "external_workspace": {
+    "mode": "embedded",
+    "workspace_id": "pack",
+    "access": "read-only",
+    "locator": { "resolution": "none" }
+  },
+  "knowledge_ownership": {
+    "owner": "MR Sistemas",
+    "canonical_location": "this-pack",
+    "pack_contains": ["manifest", "metadata", "knowledge-records"],
+    "duplication_policy": "forbidden"
+  },
+  "integration": {
+    "status": "not-applicable",
+    "notes": "Software fictício e sintético, usado só em testes. Não há workspace externo; os arquivos de fonte citados não existem."
+  },
+  "collections": ["sources", "evidence", "facts", "screens", "interactions", "lookups", "workflows", "business-rules", "contradictions", "reviews", "releases"],
+  "isolation": {
+    "leak_terms": {
+      "identity": ["acme-ledger", "acme ledger"],
+      "domain": ["Posting Window", "Account Picker", "Cost Center Picker"]
+    }
+  },
+  "created_at": "2026-10-14"
+}

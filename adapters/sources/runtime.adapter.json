@@ -1,0 +1,18 @@
+{
+  "id": "runtime",
+  "source_kind": "runtime",
+  "status": "contract",
+  "summary": "Observação do software em execução: estados de tela, efeito de ações, mensagens.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["behavior", "visual-element", "structure"],
+  "read_only": true,
+  "requires_capabilities": ["vision", "shell"],
+  "safety": {
+    "requires_human_authorization": true,
+    "notes": "Somente em ambiente de teste ou homologação, com autorização registrada. Nunca em produção. Nunca aciona gravação, exclusão, emissão ou envio. Toda sessão é gravada como fonte (log) com hash."
+  },
+  "limits": [
+    "O que se observa vale para a versão e a configuração da sessão.",
+    "Um efeito observado uma vez não prova que acontece sempre; registre o contexto."
+  ]
+}

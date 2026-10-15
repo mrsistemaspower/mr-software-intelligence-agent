@@ -1,0 +1,18 @@
+{
+  "id": "source-code",
+  "source_kind": "source-code",
+  "status": "contract",
+  "summary": "Código-fonte do software, quando disponível: estrutura, rotinas, validações, consultas.",
+  "operations": ["describe", "inventory", "fingerprint", "extract", "coverage"],
+  "produces": ["structure", "text", "metadata"],
+  "read_only": true,
+  "requires_capabilities": ["file-read", "long-context"],
+  "safety": {
+    "requires_human_authorization": false,
+    "notes": "Análise estática. Nunca compila nem executa o código. Segredos encontrados no código são omitidos da saída."
+  },
+  "limits": [
+    "Código lido diretamente é OBSERVED quanto ao que o código diz; o que ele faz em execução é INFERRED até haver teste.",
+    "Código morto ou desativado por configuração gera confiança menor sobre o comportamento."
+  ]
+}

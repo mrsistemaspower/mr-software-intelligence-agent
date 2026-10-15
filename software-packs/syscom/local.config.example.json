@@ -1,0 +1,4 @@
+{
+  "comment": "Exemplo de configuração local de desenvolvimento. Copie para local.config.json (ignorado pelo git). Somente leitura: o agente nunca escreve neste workspace.",
+  "workspace_path": "C:\\MR-AI\\mr-syscom"
+}

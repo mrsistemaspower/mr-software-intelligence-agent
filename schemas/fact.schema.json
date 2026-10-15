@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:fact:1",
+  "title": "Fact",
+  "description": "Uma afirmação sobre o software. Um fato OBSERVED precisa de ao menos uma evidência. Um fato INFERRED declara a base do raciocínio. Um fato VALIDATED declara quem confirmou.",
+  "type": "object",
+  "required": ["id", "statement", "epistemic"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^fct:" },
+    "statement": { "type": "string", "minLength": 1 },
+    "about": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId" }
+    },
+    "supported_by": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/recordId", "pattern": "^evd:" }
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "epistemic": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/epistemic" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "epistemic": { "properties": { "status": { "const": "OBSERVED" } }, "required": ["status"] } },
+        "required": ["epistemic"]
+      },
+      "then": { "required": ["supported_by"], "properties": { "supported_by": { "minItems": 1 } } }
+    }
+  ]
+}
