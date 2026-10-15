@@ -52,12 +52,19 @@ Núcleo pequeno em `core/`, só biblioteca padrão, sem efeito colateral no impo
 | `escalation` | roteamento de itens para `AI_RECHECK`, `SOURCE_GAP`, `HUMAN_DECISION`, `HUMAN_VALIDATION`; deduplicação de perguntas |
 | `impact` | inteligência de mudança: quais registros uma mudança afeta |
 | `isolation` | verificação de que o núcleo e as camadas genéricas não conhecem nenhum software nem provedor |
+| `serialization` | JSON canônico (`mr-canonical-json/1`): mesmo valor, mesmos bytes; leitura estrita |
+| `hashing` | `Digest` e SHA-256 de bytes, de arquivos e de JSON canônico |
+| `paths` | caminho lógico portátil x caminho local; detecção de caminho local; caminho longo do Windows |
+| `atomic` | escrita atômica e idempotente de bytes, texto e JSON canônico |
+| `integrity` | verificação de fonte: "processei esta fonte exata"; ausente, alterada, surgida, ilegível, não declarada |
+| `snapshot` | `KnowledgeSnapshot`: estado de conhecimento consumido, com identidade que não depende de relógio |
+| `identity` | identidade determinística de artefato derivado (tipo, versão, hashes de fonte, parâmetros, snapshot) |
 
-Capacidades planejadas e ainda não implementadas (estado de lote, checkpoints, snapshot de conhecimento, cache, seleção de amostra) são extração do SYSCOM, prevista para o próximo marco (ver auditoria, seção 8).
+Os sete últimos módulos vêm da primeira extração do SYSCOM (ver [`AGENT_EXTRACTION_1.md`](AGENT_EXTRACTION_1.md)). Capacidades planejadas e ainda não implementadas (estado de lote, checkpoints, cache, seleção de amostra) são extração do SYSCOM, prevista para os próximos marcos (ver auditoria, seção 8).
 
 ### Schemas
 
-Contratos de dados em `schemas/`. Doze conceitos de conhecimento (Software, Source, Evidence, Fact, Screen, Interaction, Lookup, Workflow, BusinessRule, Contradiction, HumanReview, ReleaseChange) mais definições comuns e seis contratos de configuração. O bloco `epistemic` é o coração: `status`, `confidence` (separados) e `provenance` (obrigatória).
+Contratos de dados em `schemas/`. Doze conceitos de conhecimento (Software, Source, Evidence, Fact, Screen, Interaction, Lookup, Workflow, BusinessRule, Contradiction, HumanReview, ReleaseChange) mais definições comuns, seis contratos de configuração e um contrato de estado derivado (`knowledge-snapshot`). O bloco `epistemic` é o coração: `status`, `confidence` (separados) e `provenance` (obrigatória).
 
 ### Adapters
 

@@ -1,0 +1,613 @@
+{
+  "capabilities": [
+    {
+      "adaptation": "O comportamento comprovado (chaves ordenadas, sem espaço, UTF-8 sem escape de não ASCII) virou um contrato nomeado, mr-canonical-json/1, com forma compacta para hash e forma legível para arquivos. A forma legível passou a ordenar chaves (a original seguia a ordem de inserção). O contrato é explícito sobre números, Unicode, profundidade e tipos aceitos, e não se declara compatível com o RFC 8785.",
+      "agent_destination": [
+        {
+          "file": "core/serialization.py",
+          "symbols": [
+            "canonical_dumps",
+            "canonical_bytes",
+            "canonical_pretty_bytes",
+            "loads_strict",
+            "CanonicalJsonError",
+            "CONTRACT"
+          ]
+        }
+      ],
+      "capability": "JSON canônico: mesmo valor semântico, mesmos bytes",
+      "id": "EX1-01",
+      "rejected_coupling": [
+        "NaN e Infinity aceitos no texto (não é JSON válido)",
+        "chaves que não são texto convertidas em silêncio (1, True e '1' davam o mesmo texto)",
+        "substituto Unicode isolado só falhava ao codificar, longe da causa",
+        "pós-processamento por expressão regular do texto renderizado para juntar listas curtas",
+        "data fixa embutida para fingir determinismo (o núcleo apenas não lê relógio)"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/evidence/k41_common.py",
+            "symbols": [
+              "write_json"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "canon",
+          "fingerprint",
+          "dumps"
+        ]
+      },
+      "tests": [
+        "tests/test_serialization.py::SameValueSameBytes",
+        "tests/test_serialization.py::CompactForm",
+        "tests/test_serialization.py::Numbers",
+        "tests/test_serialization.py::Rejections",
+        "tests/test_serialization.py::PrettyForm",
+        "tests/test_serialization.py::StrictLoading",
+        "tests/test_extraction_1.py::ParityWithTheReferenceBehaviour"
+      ]
+    },
+    {
+      "adaptation": "Leitura em blocos de 1 MiB mantida. As duas cópias independentes do mesmo código viraram uma. O resultado passou a ser um objeto com algoritmo, resumo e tamanho em bytes; o tamanho é o dos bytes realmente lidos. A lista de algoritmos é fechada em SHA-256.",
+      "agent_destination": [
+        {
+          "file": "core/hashing.py",
+          "symbols": [
+            "Digest",
+            "hash_bytes",
+            "hash_file",
+            "hash_canonical_json",
+            "digest_reference",
+            "SUPPORTED_ALGORITHMS"
+          ]
+        }
+      ],
+      "capability": "Hash determinístico de bytes, arquivos e valores JSON canônicos",
+      "id": "EX1-02",
+      "rejected_coupling": [
+        "duas implementações divergentes do mesmo hash em módulos diferentes",
+        "resumo como texto solto, sem algoritmo nem tamanho"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/evidence/k41_common.py",
+            "symbols": [
+              "sha256_bytes",
+              "sha256_file"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "sha256_bytes",
+          "sha256_file",
+          "fingerprint"
+        ]
+      },
+      "tests": [
+        "tests/test_hashing.py::KnownAnswers",
+        "tests/test_hashing.py::Mutation",
+        "tests/test_hashing.py::Files",
+        "tests/test_hashing.py::CanonicalJsonHash",
+        "tests/test_hashing.py::DigestValidation",
+        "tests/test_extraction_1.py::ParityWithTheReferenceBehaviour"
+      ]
+    },
+    {
+      "adaptation": "Mantidos: temporário no mesmo diretório, troca com os.replace, bytes idênticos não são regravados e o veredito CREATED, UPDATED ou NO_CHANGE. Acrescentados: nome de temporário exclusivo, fsync, remoção do temporário em qualquer falha (inclusive interrupção), serialização antes de tocar o disco, bytes escritos sem tradução de quebra de linha e leitura concorrente sempre de versão inteira.",
+      "agent_destination": [
+        {
+          "file": "core/atomic.py",
+          "symbols": [
+            "atomic_write_bytes",
+            "atomic_write_text",
+            "atomic_write_json",
+            "WriteResult",
+            "CREATED",
+            "UPDATED",
+            "NO_CHANGE"
+          ]
+        }
+      ],
+      "capability": "Escrita atômica e idempotente de bytes, texto e JSON canônico",
+      "id": "EX1-03",
+      "rejected_coupling": [
+        "nome fixo de temporário (colide entre escritores e sobra após falha)",
+        "nenhuma limpeza do temporário quando a escrita falha",
+        "sem fsync antes da troca",
+        "ordem de inserção das chaves como se fosse forma canônica"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/evidence/k41_common.py",
+            "symbols": [
+              "write_json"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "write_json"
+        ]
+      },
+      "tests": [
+        "tests/test_atomic.py::AtomicText",
+        "tests/test_atomic.py::AtomicBytes",
+        "tests/test_atomic.py::FailureNeverCorruptsTheTarget",
+        "tests/test_atomic.py::AtomicJson",
+        "tests/test_atomic.py::ReadersNeverSeeAPartialFile",
+        "tests/test_extraction_1.py::ParityWithTheReferenceBehaviour"
+      ]
+    },
+    {
+      "adaptation": "A necessidade (caminhos acima do limite clássico do Windows) foi mantida e isolada em um único módulo. O prefixo estendido só é aplicado quando o caminho é longo, com suporte a caminhos de rede, e em raízes de operações recursivas. Em outros sistemas a função só devolve o caminho absoluto.",
+      "agent_destination": [
+        {
+          "file": "core/paths.py",
+          "symbols": [
+            "to_fs_path",
+            "_windows_extended"
+          ]
+        }
+      ],
+      "capability": "Caminho longo do Windows como detalhe local, sem acoplar o núcleo ao Windows",
+      "id": "EX1-04",
+      "rejected_coupling": [
+        "prefixo aplicado a todo caminho no Windows, mudando a semântica de caminhos curtos",
+        "uma das duas cópias não tratava caminhos de rede e produzia um caminho inválido",
+        "teste de sistema operacional espalhado pelos módulos"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/evidence/k41_common.py",
+            "symbols": [
+              "lp"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "lp"
+        ]
+      },
+      "tests": [
+        "tests/test_paths.py::FileSystemPaths",
+        "tests/test_extraction_1.py::ParityWithTheReferenceBehaviour",
+        "tests/test_extraction_1.py::NoSyscomCouplingInTheNewCore"
+      ]
+    },
+    {
+      "adaptation": "A ideia de gravar caminho relativo à raiz foi mantida e endurecida: forma única com barra, sem raiz, unidade, '..' ou nomes inválidos em outro sistema; resolução que não escapa da raiz nem por ligação simbólica; detector de caminho local para barrar vazamento em snapshot e identidade. A raiz local é sempre argumento, nunca constante.",
+      "agent_destination": [
+        {
+          "file": "core/paths.py",
+          "symbols": [
+            "normalize_logical_path",
+            "is_logical_path",
+            "to_logical_path",
+            "resolve_logical",
+            "looks_like_local_path",
+            "find_local_paths",
+            "assert_portable",
+            "comparison_key",
+            "PathPortabilityError"
+          ]
+        }
+      ],
+      "capability": "Caminho lógico portátil, separado do caminho local de integração",
+      "id": "EX1-05",
+      "rejected_coupling": [
+        "raiz do repositório de referência fixada em constante do módulo",
+        "caminho absoluto devolvido quando o arquivo está fora da raiz (vazamento de caminho local)",
+        "comentário e texto com caminho de unidade do Windows do projeto"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/evidence/k41_common.py",
+            "symbols": [
+              "rel",
+              "ROOT"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "rel",
+          "REPO"
+        ]
+      },
+      "tests": [
+        "tests/test_paths.py::NormalizeLogicalPath",
+        "tests/test_paths.py::ConsistencyWithFoundationContracts",
+        "tests/test_paths.py::LocalPathDetection",
+        "tests/test_paths.py::LocalRoots",
+        "tests/test_extraction_1.py::ParityWithTheReferenceBehaviour"
+      ]
+    },
+    {
+      "adaptation": "Mantidos: retrato por hash sem copiar arquivos, identidade sem relógio, camada ausente registrada como ABSENT e fazendo o id mudar quando aparece. Generalizados: a lista de artefatos é declarada por quem chama; as entradas são ordenadas por caminho lógico (a identidade original dependia da ordem de declaração); software_id entra na identidade quando existe; criado a partir de, pai e metadados de geração ficam fora dela. Novo: contrato JSON, adulteração detectada ao recarregar e hash das entradas como campo próprio.",
+      "agent_destination": [
+        {
+          "file": "core/snapshot.py",
+          "symbols": [
+            "KnowledgeSnapshot",
+            "ArtifactEntry",
+            "ArtifactSpec",
+            "build_snapshot",
+            "snapshot_directory",
+            "snapshot_from_dict",
+            "save_snapshot",
+            "load_snapshot",
+            "validate_snapshot_dict"
+          ]
+        },
+        {
+          "file": "schemas/knowledge-snapshot.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Snapshot de conhecimento determinístico, sem cópia de fonte e sem relógio",
+      "id": "EX1-06",
+      "rejected_coupling": [
+        "lista fixa de arquivos de conhecimento do projeto de referência",
+        "pasta de convenções e glob da camada humana de uma rodada específica",
+        "contadores por papel (padrões, rotas, respostas) e hashes derivados por papel",
+        "identificador de schema com prefixo e versão do projeto de referência",
+        "identidade dependente da ordem de declaração dos arquivos",
+        "situação UNREADABLE carregando texto de erro do sistema"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING",
+        "DATASET_SPECIFIC",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "knowledge_snapshot",
+          "_entry",
+          "KNOWLEDGE_FILES",
+          "SNAPSHOT_SCHEMA"
+        ]
+      },
+      "tests": [
+        "tests/test_snapshot.py::FrozenIdentity",
+        "tests/test_snapshot.py::Determinism",
+        "tests/test_snapshot.py::DirectorySnapshots",
+        "tests/test_snapshot.py::EntryInvariants",
+        "tests/test_snapshot.py::SnapshotInvariants",
+        "tests/test_snapshot.py::SchemaContract",
+        "tests/test_snapshot.py::TamperDetection",
+        "tests/test_snapshot.py::Persistence",
+        "tests/test_extraction_1.py::SecondSyntheticSoftware"
+      ]
+    },
+    {
+      "adaptation": "Mantida a regra: difere quem tem outra situação ou outro hash, e quem entra ou sai da lista. Acrescentada a classificação da mudança (ADDED, REMOVED, MODIFIED, APPEARED, DISAPPEARED, ROLE_CHANGED) e a recusa de comparar softwares diferentes.",
+      "agent_destination": [
+        {
+          "file": "core/snapshot.py",
+          "symbols": [
+            "diff_snapshots",
+            "SnapshotDiff",
+            "SnapshotChange"
+          ]
+        }
+      ],
+      "capability": "Deriva entre dois snapshots",
+      "id": "EX1-07",
+      "rejected_coupling": [
+        "chave de comparação 'papel:caminho' em texto",
+        "comparação entre snapshots de softwares diferentes sem aviso"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "snapshot_drift"
+        ]
+      },
+      "tests": [
+        "tests/test_snapshot.py::Drift"
+      ]
+    },
+    {
+      "adaptation": "Generalização, não cópia. A referência detectava alteração por diferença de hash entre snapshots e por estado do controle de versão em pastas protegidas. O núcleo compara o hash esperado com o hash lido numa raiz local, sem processo externo, e distingue ausente, alterado, ilegível, surgido e não declarado; duplicidade de conteúdo é só informativa. Operações sobre evidência congelada levantam erro em vez de seguir adiante. Integra com os registros source da Foundation (caminho e hash fixado).",
+      "agent_destination": [
+        {
+          "file": "core/integrity.py",
+          "symbols": [
+            "ExpectedSource",
+            "expect_present",
+            "expect_absent",
+            "verify_sources",
+            "require_intact",
+            "IntegrityReport",
+            "IntegrityError",
+            "Finding",
+            "expected_from_source_records"
+          ]
+        },
+        {
+          "file": "core/snapshot.py",
+          "symbols": [
+            "verify_snapshot"
+          ]
+        }
+      ],
+      "capability": "Integridade de fonte: afirmar 'processei esta fonte exata'",
+      "id": "EX1-08",
+      "rejected_coupling": [
+        "lista fixa de pastas protegidas do projeto de referência",
+        "dependência do controle de versão para detectar mutação",
+        "mensagens de erro do sistema operacional, que carregam o caminho local"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "snapshot_drift",
+          "git_state",
+          "_entry"
+        ]
+      },
+      "tests": [
+        "tests/test_integrity.py::Pristine",
+        "tests/test_integrity.py::SourceMutation",
+        "tests/test_integrity.py::MissingAndAppeared",
+        "tests/test_integrity.py::DuplicatesAndUndeclared",
+        "tests/test_integrity.py::FromSourceRecords",
+        "tests/test_snapshot.py::VerifyAgainstDisk",
+        "tests/test_extraction_1.py::SecondSyntheticSoftware"
+      ]
+    },
+    {
+      "adaptation": "Generalização do padrão 'identidade = hash do JSON canônico de entradas explícitas' que a referência usava para o snapshot. O id de artefato deriva de tipo, versão de schema, hashes das fontes, parâmetros e id do snapshot. A API não tem argumento para relógio, acaso, máquina, caminho absoluto ou provedor de modelo; barreiras recusam chaves e caminhos locais nos parâmetros.",
+      "agent_destination": [
+        {
+          "file": "core/identity.py",
+          "symbols": [
+            "artifact_identity",
+            "ArtifactIdentity",
+            "FORBIDDEN_PARAMETER_KEYS"
+          ]
+        }
+      ],
+      "capability": "Identidade determinística de artefato derivado",
+      "id": "EX1-09",
+      "rejected_coupling": [
+        "identidade implícita, espalhada por scripts de uma rodada específica",
+        "qualquer dependência de data, nome de máquina ou caminho local na identidade"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "fingerprint",
+          "knowledge_snapshot"
+        ]
+      },
+      "tests": [
+        "tests/test_identity.py::FrozenContract",
+        "tests/test_identity.py::Determinism",
+        "tests/test_identity.py::EveryInputMatters",
+        "tests/test_identity.py::GuardsAgainstAccidentalLeaks",
+        "tests/test_identity.py::Validation",
+        "tests/test_identity.py::ResultObject",
+        "tests/test_extraction_1.py::DeterministicAcrossRuns"
+      ]
+    },
+    {
+      "adaptation": "A referência obtinha saídas repetíveis embutindo uma data fixa. O núcleo resolve na raiz: nenhuma função lê relógio, máquina ou acaso; created_at é fornecido por quem chama, é opcional e fica fora da identidade. Verificado por varredura estática de importações e atributos e por execução em outros processos com ambientes hostis.",
+      "agent_destination": [
+        {
+          "file": "core/snapshot.py",
+          "symbols": [
+            "KnowledgeSnapshot",
+            "build_snapshot"
+          ]
+        }
+      ],
+      "capability": "Determinismo sem relógio: tempo é metadado, nunca identidade",
+      "id": "EX1-10",
+      "rejected_coupling": [
+        "data fixa embutida como substituta de relógio"
+      ],
+      "source_classification": [
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "file": "tools/evidence/k41_common.py",
+        "symbols": [
+          "FIXED_TS"
+        ]
+      },
+      "tests": [
+        "tests/test_extraction_1.py::DeterministicInputsOnly",
+        "tests/test_extraction_1.py::DeterministicAcrossRuns",
+        "tests/test_snapshot.py::Determinism",
+        "tests/test_identity.py::Determinism"
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "capability": "Validação estrutural de PNG (assinatura, CRC, IHDR, IEND, tamanho da descompressão)",
+      "id": "EX1-D1",
+      "planned_destination": "adapters/sources (implementação do adaptador de capturas, extração futura)",
+      "reason": "É validação de formato de mídia. Colocá-la no núcleo acoplaria o núcleo a um formato de imagem; pertence ao adaptador de fonte de capturas.",
+      "source_reference": {
+        "file": "tools/evidence/k41_common.py",
+        "symbols": [
+          "check_png",
+          "_adam7_expected",
+          "PNG_SIG"
+        ]
+      }
+    },
+    {
+      "capability": "Estado do controle de versão e proteção de raízes de lote",
+      "id": "EX1-D2",
+      "planned_destination": "Agent Extraction 2 (estado de lote, checkpoints e registro de execução)",
+      "reason": "Depende de processo externo e de listas fixas de pastas protegidas; é parte do estado de lote e do registro de execução, não de uma primitiva de hash ou de snapshot.",
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "git",
+          "git_state",
+          "PROTECTED_PATHS",
+          "check_root_allowed"
+        ]
+      }
+    }
+  ],
+  "extraction": "EXTRACTION_001",
+  "foundation_commit": "fdb4fc52cb9329bea21b5048ca9ecede1aa6fd08",
+  "reference": {
+    "access": "read-only",
+    "commit": "4c652a38c37d1c492837e82a0cef06de59de2a6c",
+    "parity_method": "Valores de referência gerados uma única vez a partir de uma cópia dos dois arquivos fora do workspace de referência, executada com bytecode desligado. Nada foi importado de dentro do workspace de referência. Os testes do agente usam esses valores congelados e não dependem de que o workspace de referência exista.",
+    "project": "mr-syscom",
+    "sources": [
+      {
+        "audit_component": "C43",
+        "git_blob": "3923259335b80264a10d2e1e8ffca5351c4a20b0",
+        "path": "tools/batch/k4_hardening_lib.py"
+      },
+      {
+        "audit_component": "C23",
+        "git_blob": "5cd02e9b423a8f59f6e84fdde862ec8ca01eda68",
+        "path": "tools/evidence/k41_common.py"
+      }
+    ],
+    "working_tree_note": "Os dois arquivos estudados eram idênticos ao commit de referência: sem diferença local e fora da lista de arquivos não rastreados."
+  },
+  "rejected": [
+    {
+      "classification": "DATASET_SPECIFIC",
+      "id": "EX1-R1",
+      "item": "Chave de comparação de nomes com palavras vazias em português e remoção de acentos",
+      "reason": "Depende de idioma e de vocabulário de um conjunto de telas. O núcleo já tem dobra de acentos e caixa em core/isolation.py.",
+      "source_reference": {
+        "file": "tools/evidence/k41_common.py",
+        "symbols": [
+          "norm_key",
+          "_STOP",
+          "strip_accents"
+        ]
+      }
+    },
+    {
+      "classification": "DATASET_SPECIFIC",
+      "id": "EX1-R2",
+      "item": "Detecção de mojibake em nomes de arquivo",
+      "reason": "Heurística sobre páginas de código de nomes de capturas de um conjunto específico. Não é invariante do agente.",
+      "source_reference": {
+        "file": "tools/evidence/k41_common.py",
+        "symbols": [
+          "MOJIBAKE_RE",
+          "has_mojibake"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "id": "EX1-R3",
+      "item": "Junção de listas curtas por expressão regular sobre o JSON já renderizado",
+      "reason": "Apresentação por pós-processamento de texto, frágil e fora de qualquer contrato. A forma legível do núcleo é definida pelo serializador.",
+      "source_reference": {
+        "file": "tools/evidence/k41_common.py",
+        "symbols": [
+          "_compact_short_lists",
+          "_SHORT_LIST_RE",
+          "_SCALAR"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "id": "EX1-R4",
+      "item": "Lista de arquivos de conhecimento, pasta de convenções e camada humana de uma rodada",
+      "reason": "Nomes, pastas e rodadas do projeto de referência. No núcleo quem chama declara os artefatos.",
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "KNOWLEDGE_FILES",
+          "CONVENTIONS_DIR",
+          "HUMAN_K42_DIRS",
+          "HUMAN_K42_GLOB"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "id": "EX1-R5",
+      "item": "Constantes de entrada e saída de uma fase do projeto de referência",
+      "reason": "Caminhos e nome de fase do projeto de referência.",
+      "source_reference": {
+        "file": "tools/evidence/k41_common.py",
+        "symbols": [
+          "HUMAN_IN",
+          "HUMAN_JSON",
+          "EVIDENCE_ZIP",
+          "EXTRACT_DIR",
+          "RAW_ROOT",
+          "OUT_DIR",
+          "CANARY",
+          "STAGE"
+        ]
+      }
+    },
+    {
+      "classification": "DATASET_SPECIFIC",
+      "id": "EX1-R6",
+      "item": "Contadores por papel e hashes derivados por papel dentro do snapshot",
+      "reason": "Padrões, rotas e respostas são conceitos do conjunto de dados de referência. O snapshot genérico não interpreta o conteúdo dos artefatos.",
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "knowledge_snapshot",
+          "_entry"
+        ]
+      }
+    }
+  ],
+  "title": "Primitivas determinísticas: JSON canônico, hash, escrita atômica, snapshot de conhecimento, integridade de fonte e identidade de artefato"
+}

@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -39,6 +41,21 @@ def copy_pack(src: Path, dst: Path) -> Path:
 
 def codes(issues) -> set[str]:
     return {issue.code for issue in issues}
+
+
+def link_directory(link: Path, target: Path) -> None:
+    """Cria uma ligação de diretório: symlink ou, no Windows sem privilégio, junção. Pula o teste se não der."""
+    try:
+        os.symlink(target, link, target_is_directory=True)
+        return
+    except (OSError, NotImplementedError):
+        pass
+    if os.name == "nt":
+        # Saída lida como bytes: o console do Windows não usa UTF-8 e a mensagem não interessa.
+        result = subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)], capture_output=True)
+        if result.returncode == 0 and link.exists():
+            return
+    raise unittest.SkipTest("ligação de diretório indisponível neste ambiente")
 
 
 class TempDirCase(unittest.TestCase):

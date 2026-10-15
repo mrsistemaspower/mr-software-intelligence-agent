@@ -22,6 +22,12 @@ Todos seguem JSON Schema 2020-12 e têm `$id` no formato `urn:mr-software-intell
 | `human-review` | HumanReview | `rev` | quatro rotas e registro do que já foi tentado |
 | `release-change` | ReleaseChange | `rel` | mudança entre versões e seu impacto |
 
+## Estado derivado (o que o núcleo calcula)
+
+| Schema | Registro | Ideia central |
+|---|---|---|
+| `knowledge-snapshot` | KnowledgeSnapshot | descreve o conhecimento consumido por uma operação, por caminho lógico e hash; a identidade deriva só do conteúdo, nunca de relógio ou máquina. Ver `core/snapshot.py` |
+
 ## Contratos de configuração (como o agente se organiza)
 
 | Schema | Valida |

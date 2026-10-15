@@ -85,7 +85,7 @@ O SYSCOM é o **caso de treino e validação número 1**. O produto não é um a
 
 ## Visão de futuro
 
-- Extrair, contra os contratos desta fundação, os motores comprovados no SYSCOM: estado de lote e checkpoints determinísticos, hash e snapshot de conhecimento, roteamento de revisão, ingestão de respostas humanas.
+- Continuar a extração, contra os contratos desta fundação, dos motores comprovados no SYSCOM (hash, JSON canônico, escrita atômica e snapshot de conhecimento já foram extraídos): estado de lote e checkpoints determinísticos, roteamento de revisão, ingestão de respostas humanas.
 - Aplicar o agente a outros ERPs da MR (por exemplo, o ERP Dolphins), a sistemas legados sem documentação e a softwares de terceiros, quando permitido.
 - Implementar os adaptadores de fonte hoje descritos como contrato.
 - Inteligência de mudança automática entre versões.
@@ -96,7 +96,9 @@ Fora do escopo deste marco: chat, interface web, banco vetorial, servidor de RAG
 
 **Agent Foundation 1.0.** Estão definidos: contrato do agente, disciplina de evidência, política de escalonamento, 12 conceitos de conhecimento e 6 contratos de configuração em JSON Schema, núcleo mínimo (validação de schema e de pacote, roteamento de revisão, impacto de mudança, verificação de isolamento), skill principal, nove contratos de skills, nove contratos de adaptadores de fonte, quatro perfis de ambiente de modelo (rascunho), seis workflows e dois pacotes (o do primeiro caso e um sintético) mais um modelo.
 
-Ainda não implementado: os adaptadores de fonte, a extração dos motores do SYSCOM e qualquer execução autônoma.
+**Agent Extraction 1.** O núcleo ganhou as primitivas determinísticas extraídas do SYSCOM: JSON canônico, hash, escrita atômica, snapshot de conhecimento, verificação de integridade de fonte, identidade de artefato e portabilidade de caminhos, mais o schema `knowledge-snapshot`. Ver [`docs/AGENT_EXTRACTION_1.md`](docs/AGENT_EXTRACTION_1.md) e a rastreabilidade em [`docs/extraction/EXTRACTION_001.json`](docs/extraction/EXTRACTION_001.json).
+
+Ainda não implementado: os adaptadores de fonte, a extração dos demais motores do SYSCOM (estado de lote, roteamento de revisão, ingestão de respostas humanas) e qualquer execução autônoma.
 
 ## Como usar e verificar
 

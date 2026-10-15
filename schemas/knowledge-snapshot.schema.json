@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:knowledge-snapshot:1",
+  "title": "KnowledgeSnapshot",
+  "description": "Descrição determinística do estado de conhecimento consumido por uma operação. Não copia fontes: lista artefatos por caminho lógico, papel, situação e hash. A identidade (snapshot_id) deriva só de software_id e das entradas ordenadas. created_from, parent_snapshot_id e generation são metadados e nunca alteram a identidade. Caminho absoluto local não pertence a este contrato. Regras que o schema não expressa (entradas ordenadas e sem repetição, artifacts_digest e snapshot_id recalculáveis, nomes reservados do Windows) são verificadas por core/snapshot.py.",
+  "type": "object",
+  "required": ["schema", "snapshot_id", "identity_version", "created_from", "entries", "artifacts_digest", "generation"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "urn:mr-software-intelligence:schema:knowledge-snapshot:1" },
+    "snapshot_id": { "$ref": "#/$defs/snapshotId" },
+    "identity_version": { "const": 1 },
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "created_from": {
+      "description": "De onde o snapshot foi derivado, em termos portáteis. Metadado: fora da identidade.",
+      "type": "object",
+      "required": ["kind", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["directory", "pack", "declared-list", "derived"] },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    },
+    "artifacts_digest": { "$ref": "#/$defs/digest" },
+    "parent_snapshot_id": { "$ref": "#/$defs/snapshotId" },
+    "generation": {
+      "description": "Metadados de geração. Fora da identidade: tempo, gerador e notas não mudam o estado de conhecimento.",
+      "type": "object",
+      "required": ["generator"],
+      "additionalProperties": false,
+      "properties": {
+        "generator": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "created_at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" },
+        "notes": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    }
+  },
+  "$defs": {
+    "snapshotId": {
+      "type": "string",
+      "pattern": "^snap:sha256:[0-9a-f]{64}$"
+    },
+    "digest": {
+      "description": "Hash do JSON canônico compacto das entradas (algorithm, digest, byte_length).",
+      "type": "object",
+      "required": ["algorithm", "digest", "byte_length"],
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": { "const": "sha256" },
+        "digest": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" },
+        "byte_length": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "entry": {
+      "description": "PRESENT exige sha256 e byte_length. ABSENT não os admite: o artefato era esperado e não existia.",
+      "type": "object",
+      "required": ["path", "role", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "description": "Caminho lógico normalizado: relativo, separador '/', sem '..', '.', ':', barra repetida ou final, caracteres de controle ou reservados, nem componente terminado em espaço ou ponto.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^(?!/)(?!.*//)(?!.*/$)(?!(.*/)?\\.{1,2}(/|$))(?![\\s\\S]*[\\x00-\\x1f\\x7f\\\\:<>\"|?*])(?!.*[ .](/|$)).+$"
+        },
+        "role": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,63}$" },
+        "status": { "enum": ["PRESENT", "ABSENT"] },
+        "sha256": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" },
+        "byte_length": { "type": "integer", "minimum": 0 }
+      },
+      "if": {
+        "required": ["status"],
+        "properties": { "status": { "const": "PRESENT" } }
+      },
+      "then": { "required": ["sha256", "byte_length"] },
+      "else": { "not": { "anyOf": [{ "required": ["sha256"] }, { "required": ["byte_length"] }] } }
+    }
+  }
+}
