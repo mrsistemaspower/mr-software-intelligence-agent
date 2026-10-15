@@ -85,7 +85,7 @@ O SYSCOM é o **caso de treino e validação número 1**. O produto não é um a
 
 ## Visão de futuro
 
-- Continuar a extração, contra os contratos desta fundação, dos motores comprovados no SYSCOM (hash, JSON canônico, escrita atômica e snapshot de conhecimento já foram extraídos): estado de lote e checkpoints determinísticos, roteamento de revisão, ingestão de respostas humanas.
+- Continuar a extração, contra os contratos desta fundação, dos motores comprovados no SYSCOM (hash, JSON canônico, escrita atômica, snapshot de conhecimento e a base de orquestração com checkpoints e retomada já foram extraídos): roteamento de revisão, executor de `AI_RECHECK`, ingestão de respostas humanas.
 - Aplicar o agente a outros ERPs da MR (por exemplo, o ERP Dolphins), a sistemas legados sem documentação e a softwares de terceiros, quando permitido.
 - Implementar os adaptadores de fonte hoje descritos como contrato.
 - Inteligência de mudança automática entre versões.
@@ -98,7 +98,9 @@ Fora do escopo deste marco: chat, interface web, banco vetorial, servidor de RAG
 
 **Agent Extraction 1.** O núcleo ganhou as primitivas determinísticas extraídas do SYSCOM: JSON canônico, hash, escrita atômica, snapshot de conhecimento, verificação de integridade de fonte, identidade de artefato e portabilidade de caminhos, mais o schema `knowledge-snapshot`. Ver [`docs/AGENT_EXTRACTION_1.md`](docs/AGENT_EXTRACTION_1.md) e a rastreabilidade em [`docs/extraction/EXTRACTION_001.json`](docs/extraction/EXTRACTION_001.json).
 
-Ainda não implementado: os adaptadores de fonte, a extração dos demais motores do SYSCOM (estado de lote, roteamento de revisão, ingestão de respostas humanas) e qualquer execução autônoma.
+**Agent Extraction 2.** O núcleo ganhou a base de orquestração determinística, genérica e sem conhecimento de software: grafo de estágios configurável (validado antes de executar), máquina de estados do estágio, checkpoints, retomada segura com invalidação só dos dependentes, recuperação de estágio interrompido, estado gravado de forma atômica, proteção de raízes de fonte (`READ_ONLY`, `FROZEN`, `MUTABLE_OUTPUT`) com detecção de mutação, e um adaptador opcional de estado do Git. Os estágios rodam tratadores fornecidos por quem executa; nada chama modelo de linguagem. Ver [`docs/AGENT_EXTRACTION_2.md`](docs/AGENT_EXTRACTION_2.md) e a rastreabilidade em [`docs/extraction/EXTRACTION_002.json`](docs/extraction/EXTRACTION_002.json).
+
+Ainda não implementado: os adaptadores de fonte, a extração dos demais motores do SYSCOM (roteamento de revisão, executor de `AI_RECHECK`, ingestão de respostas humanas) e qualquer execução autônoma com modelo de linguagem.
 
 ## Como usar e verificar
 

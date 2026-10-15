@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:stage-checkpoint:1",
+  "title": "StageCheckpoint",
+  "description": "Prova de que um estágio concluído pode ser pulado na retomada. Amarra o resultado ao que o produziu: definição e versão do estágio, configuração relevante, snapshot de conhecimento, hash de cada entrada, identidade das saídas das dependências e hash de cada saída. Só é válido se tudo isso ainda confere (core/checkpoint.py recalcula checkpoint_id, outputs_digest e execution_identity ao carregar). Sem relógio, sem máquina, sem caminho absoluto: os caminhos das saídas são lógicos, relativos à raiz de saídas.",
+  "type": "object",
+  "required": [
+    "schema", "checkpoint_id", "workflow_id", "stage_id", "stage_version", "definition_digest", "parameters_digest",
+    "inputs", "upstream", "execution_identity", "outputs", "outputs_digest", "status", "attempt"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "urn:mr-software-intelligence:schema:stage-checkpoint:1" },
+    "checkpoint_id": { "type": "string", "pattern": "^ckpt:sha256:[0-9a-f]{64}$" },
+    "workflow_id": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "stage_id": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "stage_version": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/version" },
+    "definition_digest": { "$ref": "#/$defs/digestRef" },
+    "parameters_digest": { "$ref": "#/$defs/digestRef" },
+    "knowledge_snapshot_id": { "type": "string", "pattern": "^snap:sha256:[0-9a-f]{64}$" },
+    "inputs": {
+      "description": "Entrada declarada -> hash do conteúdo no momento da execução.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/digestRef" }
+    },
+    "upstream": {
+      "description": "Dependência -> outputs_digest do checkpoint dela no momento da execução.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/digestRef" }
+    },
+    "execution_identity": { "type": "string", "pattern": "^art:stage\\.execution:sha256:[0-9a-f]{64}$" },
+    "outputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/output" }
+    },
+    "outputs_digest": { "$ref": "#/$defs/digestRef" },
+    "status": { "const": "COMPLETED" },
+    "attempt": {
+      "description": "Metadado: qual tentativa produziu o resultado. Fora da identidade.",
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "$defs": {
+    "digestRef": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "output": {
+      "type": "object",
+      "required": ["name", "path", "sha256", "byte_length"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "path": { "type": "string", "minLength": 1, "maxLength": 1024 },
+        "sha256": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" },
+        "byte_length": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:stage-graph:1",
+  "title": "StageGraph",
+  "description": "Grafo de estágios de um fluxo de execução: estágios nomeados com dependências explícitas. Os nomes são arbitrários. O schema expressa a forma; as regras de grafo (identificador repetido, autodependência, dependência desconhecida, ciclo, estágio obrigatório que depende de opcional) são verificadas por core/stage_graph.py antes de qualquer execução. A ordem dos estágios no arquivo é a ordem topológica determinística (desempate pelo menor stage_id), nunca a ordem de declaração.",
+  "type": "object",
+  "required": ["schema", "stages"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "urn:mr-software-intelligence:schema:stage-graph:1" },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/stage" }
+    }
+  },
+  "$defs": {
+    "name": {
+      "description": "Nome lógico de estágio, entrada ou saída. Precisa também ser um componente de caminho portátil (saídas viram arquivos).",
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$"
+    },
+    "nameList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/name" }
+    },
+    "stage": {
+      "type": "object",
+      "required": ["stage_id"],
+      "additionalProperties": false,
+      "properties": {
+        "stage_id": { "$ref": "#/$defs/name" },
+        "version": { "$ref": "#/$defs/version" },
+        "depends_on": { "$ref": "#/$defs/nameList" },
+        "input_contracts": { "$ref": "#/$defs/nameList" },
+        "output_contracts": { "$ref": "#/$defs/nameList" },
+        "optional": { "type": "boolean" },
+        "retry": {
+          "type": "object",
+          "required": ["max_attempts"],
+          "additionalProperties": false,
+          "properties": {
+            "max_attempts": { "type": "integer", "minimum": 1, "maximum": 20 }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,894 @@
+{
+  "base_commit": "cde63f91678971e7a560b2cf0f38e4a938f01776",
+  "capabilities": [
+    {
+      "agent_destination": [
+        {
+          "file": "core/stage_graph.py",
+          "symbols": [
+            "StageGraph",
+            "StageSpec",
+            "RetryPolicy",
+            "GraphError",
+            "graph_from_agent_workflow",
+            "is_valid_name"
+          ]
+        },
+        {
+          "file": "schemas/stage-graph.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Grafo de estágios configurável com dependências explícitas e validação antes da execução",
+      "generic_invariant": "Um fluxo é um conjunto de estágios nomeados com dependências explícitas. Grafo inválido (vazio, repetido, autodependente, com dependência desconhecida ou com ciclo) nunca chega a executar. A ordem de execução é topológica e determinística, e independe da ordem de declaração.",
+      "id": "EX2-01",
+      "rejected_coupling": [
+        "oito estágios com nomes fixos e ordem linear fixa",
+        "lista fixa de arquivos de artefato por estágio",
+        "marcação de estágios que exigem o passo multimodal",
+        "artefato opcional específico de um estágio"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "STAGES",
+          "STAGE_ARTIFACTS",
+          "OPTIONAL",
+          "MULTIMODAL_STAGES"
+        ]
+      },
+      "tests": [
+        "tests/test_stage_graph.py::Validation",
+        "tests/test_stage_graph.py::Names",
+        "tests/test_stage_graph.py::DeterministicOrder",
+        "tests/test_stage_graph.py::Contract"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/stage_graph.py",
+          "symbols": [
+            "graph_from_agent_workflow"
+          ]
+        },
+        {
+          "file": "schemas/agent-workflow.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Fluxo de execução único: os passos de um workflow da Foundation viram estágios do mesmo motor",
+      "generic_invariant": "Existe um só conceito de fluxo. Os passos de um agent-workflow são estágios; sem dependência declarada, vale a sequência escrita; dependência explícita permite ramos independentes.",
+      "id": "EX2-02",
+      "rejected_coupling": [
+        "um segundo vocabulário de fluxo paralelo ao contrato da Foundation",
+        "lista de fases fixa no código"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "STAGES"
+        ]
+      },
+      "tests": [
+        "tests/test_stage_graph.py::AgentWorkflowBridge",
+        "tests/test_orchestrator.py::FoundationWorkflowBridge"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/stage_state.py",
+          "symbols": [
+            "StageState",
+            "StageRecord",
+            "TRANSITIONS",
+            "check_transition",
+            "is_runnable",
+            "TransitionError"
+          ]
+        }
+      ],
+      "capability": "Máquina de estados do estágio com transições explícitas e invariantes por estado",
+      "generic_invariant": "Seis estados (PENDING, RUNNING, COMPLETED, FAILED, BLOCKED, INVALIDATED); READY é derivado. Só as transições documentadas existem. Um estágio concluído nunca volta a rodar sem passar por INVALIDATED com causa. RUNNING volta a PENDING só como recuperação explícita de interrupção.",
+      "id": "EX2-03",
+      "rejected_coupling": [
+        "chave de tela e campos de revisão (review_class, ai_recheck) no registro de processamento",
+        "status em minúsculas e sem BLOCKED nem INVALIDATED",
+        "reabertura por texto livre sem causa estruturada",
+        "recusa de manifesto congelado específica do formato do lote"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "STATUSES",
+          "op_claim",
+          "op_complete",
+          "op_fail",
+          "op_reopen",
+          "op_requeue"
+        ]
+      },
+      "tests": [
+        "tests/test_stage_state.py::TransitionTable",
+        "tests/test_stage_state.py::Invariants",
+        "tests/test_stage_state.py::Attempts"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/checkpoint.py",
+          "symbols": [
+            "StageCheckpoint",
+            "CheckpointStore",
+            "check_checkpoint",
+            "execution_identity",
+            "outputs_digest",
+            "CheckpointError"
+          ]
+        },
+        {
+          "file": "schemas/stage-checkpoint.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Checkpoint que prova que um estágio concluído pode ser pulado",
+      "generic_invariant": "O checkpoint amarra o resultado a definição e versão do estágio, configuração relevante, snapshot de conhecimento, hash das entradas, identidade das dependências e hash das saídas. É válido só se tudo ainda confere; existência de arquivo nunca basta. Campo adulterado é recusado ao carregar.",
+      "id": "EX2-04",
+      "rejected_coupling": [
+        "arquivo único por lote indexado por chave de tela",
+        "impressão digital montada à mão por estágio, com hash de uma lista fixa de ferramentas",
+        "hash das capturas de tela como entrada fixa dos estágios iniciais",
+        "data e duração gravadas dentro do checkpoint",
+        "artefatos relativos a uma pasta de tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/k4_hardening_lib.py",
+            "symbols": [
+              "fingerprint",
+              "canon"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "record_stage",
+          "artifact_hashes",
+          "verify_screen"
+        ]
+      },
+      "tests": [
+        "tests/test_checkpoint.py::Determinism",
+        "tests/test_checkpoint.py::Validity",
+        "tests/test_checkpoint.py::Tampering",
+        "tests/test_checkpoint.py::Store"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/resume.py",
+          "symbols": [
+            "reconcile",
+            "Decision",
+            "ResumePlan",
+            "StagePlan",
+            "ReconcileInputs"
+          ]
+        }
+      ],
+      "capability": "Retomada segura: pular o que vale, refazer o que deixou de valer",
+      "generic_invariant": "COMPLETED com checkpoint válido é pulado. COMPLETED com checkpoint ausente, corrompido ou divergente NÃO é pulado. Falha com tentativas sobrando é refeita; sem tentativas, fica falha. Cada decisão tem motivo explícito.",
+      "id": "EX2-05",
+      "rejected_coupling": [
+        "validador profundo obrigatório ligado ao status do lote",
+        "ADOPT_LEGACY e BLOCKED_MISSING_SEED",
+        "indicação de que o passo multimodal precisa acontecer",
+        "colapso do primeiro estágio não confiável em um estágio fixo"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/batch_run.py",
+            "symbols": [
+              "resumable",
+              "op_next"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "resume_plan",
+          "SKIP",
+          "RETRY_INVALID",
+          "RETRY_INCOMPLETE",
+          "RUN_NEW"
+        ]
+      },
+      "tests": [
+        "tests/test_orchestrator.py::SyntheticLinearWorkflow",
+        "tests/test_orchestrator.py::CheckpointIntegrity",
+        "tests/test_orchestrator.py::KnowledgeSnapshotBinding",
+        "tests/test_orchestrator.py::DefinitionDrift"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/resume.py",
+          "symbols": [
+            "reconcile"
+          ]
+        },
+        {
+          "file": "core/stage_graph.py",
+          "symbols": [
+            "StageGraph"
+          ]
+        }
+      ],
+      "capability": "Invalidação por mudança a montante, com propagação só aos dependentes",
+      "generic_invariant": "Quando um estágio deixa de valer, só os seus descendentes no grafo são invalidados. Ramos independentes permanecem válidos. A causa registrada aponta o estágio de origem.",
+      "id": "EX2-06",
+      "rejected_coupling": [
+        "invalidação por posição em uma lista linear (tudo o que vem depois)",
+        "reinício do estágio de entrada por estágio fixo"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "invalidate_from",
+          "record_stage"
+        ]
+      },
+      "tests": [
+        "tests/test_stage_graph.py::Propagation",
+        "tests/test_orchestrator.py::BranchedWorkflow",
+        "tests/test_orchestrator.py::ChangePropagation"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/stage_state.py",
+          "symbols": [
+            "FailureInfo",
+            "failure_from_exception",
+            "sanitize_message",
+            "Cause"
+          ]
+        },
+        {
+          "file": "core/orchestrator.py",
+          "symbols": [
+            "Orchestrator",
+            "StageFailure"
+          ]
+        }
+      ],
+      "capability": "Registro de falha portátil e contagem de tentativas",
+      "generic_invariant": "Falha é dado simples: estágio, categoria fechada, mensagem sem caminho local, tentativa e estado do checkpoint. Nenhuma exceção do Python entra no contrato. Falha crítica interrompe a execução; falha de estágio opcional bloqueia só os dependentes.",
+      "id": "EX2-07",
+      "rejected_coupling": [
+        "mensagem de erro gravada como veio, inclusive com caminhos locais",
+        "lista de erros com data de relógio dentro do estado",
+        "esgotamento de tentativas calculado a partir de um máximo guardado no documento do lote"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/batch_run.py",
+            "symbols": [
+              "op_fail",
+              "op_claim"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "record_failure"
+        ]
+      },
+      "tests": [
+        "tests/test_stage_state.py::PortableFailure",
+        "tests/test_orchestrator.py::FailureRecording",
+        "tests/test_orchestrator.py::OutputAndInputContracts"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/resume.py",
+          "symbols": [
+            "reconcile"
+          ]
+        },
+        {
+          "file": "core/run_config.py",
+          "symbols": [
+            "InterruptionPolicy"
+          ]
+        }
+      ],
+      "capability": "Recuperação de estágio interrompido por política explícita",
+      "generic_invariant": "Um estágio encontrado em RUNNING é um processo que sumiu. Nunca se presume que terminou e nenhuma saída é inventada. A política da configuração decide: REQUEUE (devolve a tentativa) ou FAIL (a tentativa conta). O checkpoint dele é descartado.",
+      "id": "EX2-08",
+      "rejected_coupling": [
+        "reenfileiramento manual por comando com texto livre em notas",
+        "recuperação só por operador, sem política declarada"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_requeue",
+          "resumable"
+        ]
+      },
+      "tests": [
+        "tests/test_orchestrator.py::InterruptedRuns"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/run_state.py",
+          "symbols": [
+            "save_run_state",
+            "load_run_state",
+            "RunState"
+          ]
+        },
+        {
+          "file": "core/checkpoint.py",
+          "symbols": [
+            "CheckpointStore"
+          ]
+        },
+        {
+          "file": "schemas/run-state.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Persistência atômica do estado e dos checkpoints",
+      "generic_invariant": "Estado e checkpoint são gravados com as primitivas atômicas da Extração 1. Uma queda durante a gravação deixa a versão anterior inteira. O checkpoint é gravado antes de o estado dizer COMPLETED. Estado ilegível nunca é substituído em silêncio.",
+      "id": "EX2-09",
+      "rejected_coupling": [
+        "temporário com nome fixo, sem fsync e sem limpeza",
+        "carimbo de atualização e resumo recalculado gravados dentro do documento",
+        "uma segunda implementação de escrita atômica"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/k4_hardening_lib.py",
+            "symbols": [
+              "write_json"
+            ]
+          }
+        ],
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "save_state"
+        ]
+      },
+      "tests": [
+        "tests/test_run_state.py::Persistence",
+        "tests/test_orchestrator.py::AtomicStatePersistence",
+        "tests/test_orchestrator.py::StateFileHandling"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/run_state.py",
+          "symbols": [
+            "compute_run_id",
+            "compute_input_identity",
+            "RunStatus"
+          ]
+        },
+        {
+          "file": "schemas/run-state.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Identidade determinística da execução",
+      "generic_invariant": "O run_id deriva só de workflow_id, software_id, workflow_version e run_key. Relógio, máquina e caminho não entram. Mudar entrada ou snapshot não muda o run_id; muda a input_identity.",
+      "id": "EX2-10",
+      "rejected_coupling": [
+        "run-NNN numerado pela história do arquivo",
+        "data de criação e de atualização como parte do estado",
+        "caminho do manifesto e hash do manifesto como identidade do lote"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/batch_run.py",
+            "symbols": [
+              "op_init"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_execution_record.py",
+        "symbols": [
+          "begin_run",
+          "new_record"
+        ]
+      },
+      "tests": [
+        "tests/test_run_state.py::RunIdentity",
+        "tests/test_orchestrator.py::DeterminismAndPortability",
+        "tests/test_extraction_2.py::DeterministicAcrossProcesses"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/checkpoint.py",
+          "symbols": [
+            "execution_identity",
+            "check_checkpoint"
+          ]
+        },
+        {
+          "file": "core/run_state.py",
+          "symbols": [
+            "RunState"
+          ]
+        }
+      ],
+      "capability": "Vínculo entre o resultado e o snapshot de conhecimento consumido",
+      "generic_invariant": "O snapshot de conhecimento entra na identidade de cada estágio. Se o snapshot mudou, o que dependia dele deixa de valer; se não mudou, nada é refeito, mesmo com metadados de geração diferentes.",
+      "id": "EX2-11",
+      "rejected_coupling": [
+        "bloqueio do lote inteiro por deriva, liberado só com aceite explícito",
+        "épocas de conhecimento numeradas dentro do registro",
+        "lista fixa de arquivos de conhecimento do projeto de origem"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/k4_hardening_lib.py",
+            "symbols": [
+              "snapshot_drift",
+              "knowledge_snapshot"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_execution_record.py",
+        "symbols": [
+          "begin_run",
+          "KnowledgeDrift"
+        ]
+      },
+      "tests": [
+        "tests/test_orchestrator.py::KnowledgeSnapshotBinding",
+        "tests/test_checkpoint.py::Validity"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/protection.py",
+          "symbols": [
+            "Protection",
+            "Verify",
+            "RootPolicy",
+            "ProtectionGuard",
+            "ProtectionError",
+            "ProtectionRecord"
+          ]
+        },
+        {
+          "file": "core/run_config.py",
+          "symbols": [
+            "RunConfig",
+            "InputBinding"
+          ]
+        },
+        {
+          "file": "schemas/run-config.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Política genérica de proteção de raízes de fonte (READ_ONLY, FROZEN, MUTABLE_OUTPUT)",
+      "generic_invariant": "Cada raiz é declarada por nome com uma classe de proteção. A escrita do agente só é concedida a raízes MUTABLE_OUTPUT. FROZEN tem linha de base permanente e não aceita verificação desligada. Raízes não podem se sobrepor no disco.",
+      "id": "EX2-12",
+      "rejected_coupling": [
+        "lista fixa de pastas protegidas do projeto de origem",
+        "lista fixa de raízes proibidas para um lote",
+        "caminhos relativos a um repositório específico",
+        "camada humana procurada por padrão de nome de arquivo do projeto"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "PROTECTED_PATHS",
+          "check_root_allowed"
+        ]
+      },
+      "tests": [
+        "tests/test_protection.py::Policies",
+        "tests/test_protection.py::Configuration",
+        "tests/test_run_config.py::Validation"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/protection.py",
+          "symbols": [
+            "ProtectionGuard",
+            "Violation"
+          ]
+        },
+        {
+          "file": "core/orchestrator.py",
+          "symbols": [
+            "Orchestrator",
+            "RunResult"
+          ]
+        }
+      ],
+      "capability": "Detecção de mutação inesperada de fonte, sem reverter nada",
+      "generic_invariant": "Antes da operação grava-se a integridade das fontes protegidas; depois, confere-se. Mutação inesperada marca a execução como UNSAFE, para a execução e registra tipo e caminho lógico. O agente não reverte, não apaga e não corrige o que pode ser dado de uma pessoa.",
+      "id": "EX2-13",
+      "rejected_coupling": [
+        "detecção apenas por estado do controle de versão, que não vê arquivos não rastreados fora do repositório",
+        "pathspec fixo de pastas protegidas"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "git_state",
+          "PROTECTED_PATHS"
+        ]
+      },
+      "tests": [
+        "tests/test_protection.py::ReadOnly",
+        "tests/test_protection.py::Frozen",
+        "tests/test_orchestrator.py::SourceProtection",
+        "tests/test_orchestrator.py::FrozenSources"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/gitstate.py",
+          "symbols": [
+            "GitState",
+            "capture_git_state",
+            "git_drift",
+            "GitStateProbe",
+            "subprocess_runner"
+          ]
+        },
+        {
+          "file": "core/orchestrator.py",
+          "symbols": [
+            "EnvironmentProbe"
+          ]
+        }
+      ],
+      "capability": "Adaptador opcional de estado do Git",
+      "generic_invariant": "Git é uma capacidade do ambiente. A captura (HEAD, ramo, sujeira rastreada, arquivos não rastreados) nunca levanta: ausência de Git ou de repositório é um resultado. Só leitura, sem shell, sem rede. O núcleo não importa o adaptador e roda sem ele.",
+      "id": "EX2-14",
+      "rejected_coupling": [
+        "estado do Git como exigência de toda execução",
+        "pathspec de pastas protegidas fixo",
+        "retorno do texto de erro do processo, que pode conter caminhos",
+        "qualquer chamada a API de hospedagem"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "git",
+          "git_state"
+        ]
+      },
+      "tests": [
+        "tests/test_gitstate.py::Capture",
+        "tests/test_gitstate.py::Unavailability",
+        "tests/test_gitstate.py::CommandSafety",
+        "tests/test_gitstate.py::Drift",
+        "tests/test_gitstate.py::RealGit",
+        "tests/test_orchestrator.py::EnvironmentCapabilities",
+        "tests/test_extraction_2.py::GitIsOptional"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/run_config.py",
+          "symbols": [
+            "RunConfig",
+            "InputBinding",
+            "InterruptionPolicy",
+            "ConfigError"
+          ]
+        },
+        {
+          "file": "schemas/run-config.schema.json",
+          "symbols": []
+        },
+        {
+          "file": "core/orchestrator.py",
+          "symbols": [
+            "Orchestrator",
+            "StageContext"
+          ]
+        }
+      ],
+      "capability": "Configuração de execução portátil, validável e com hash",
+      "generic_invariant": "Toda a configuração é dado: fluxo, grafo, raízes por nome, entradas nomeadas, parâmetros por estágio e política de interrupção. Nenhum caminho local entra; o hash é o mesmo em qualquer máquina e pasta.",
+      "id": "EX2-15",
+      "rejected_coupling": [
+        "nomes de contratos, de prompt mestre e de política de revisão gravados como constantes",
+        "total de telas esperado e tamanho de lote fixos",
+        "caminhos do projeto de origem como valores padrão"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_init"
+        ]
+      },
+      "tests": [
+        "tests/test_run_config.py::Hashing",
+        "tests/test_run_config.py::Contract",
+        "tests/test_orchestrator.py::SyntheticSecondSoftware",
+        "tests/test_orchestrator.py::ContextAccess"
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "planned_destination": "extração do executor de AI_RECHECK sobre o schema human-review",
+      "reason": "Classe de revisão e resultado de AI_RECHECK dependem do executor de releitura, que ainda não existe no agente.",
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_review",
+          "op_recheck"
+        ]
+      }
+    },
+    {
+      "planned_destination": "extração de adoção de resultados existentes (checkpoint retroativo)",
+      "reason": "Adoção de resultados concluídos sem checkpoint exige um critério de confiança por tipo de artefato; o motor atual recusa pular sem prova.",
+      "source_reference": {
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "ADOPT",
+          "resume_plan"
+        ]
+      }
+    },
+    {
+      "planned_destination": "extração de observabilidade da execução",
+      "reason": "Métricas observadas de duração e contagem não são necessárias para decidir o que roda e o que se pula.",
+      "source_reference": {
+        "file": "tools/batch/k4_execution_record.py",
+        "symbols": [
+          "Timer",
+          "finish_run",
+          "ev_completed"
+        ]
+      }
+    },
+    {
+      "planned_destination": "adaptadores de modelo e skills de leitura de telas",
+      "reason": "Saber que um estágio exige passo multimodal é política do tratador do estágio, não do orquestrador.",
+      "source_reference": {
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "MULTIMODAL_STAGES",
+          "seeds_present"
+        ]
+      }
+    },
+    {
+      "planned_destination": "extração de observabilidade da execução",
+      "reason": "Histórico de execuções (lista de runs por lote) é registro de auditoria, não estado necessário à retomada.",
+      "source_reference": {
+        "file": "tools/batch/k4_execution_record.py",
+        "symbols": [
+          "begin_run",
+          "ev_started",
+          "ev_skipped"
+        ]
+      }
+    }
+  ],
+  "extraction": "EXTRACTION_002",
+  "not_extracted": [
+    "executor de AI_RECHECK",
+    "runtime de modelo de linguagem",
+    "motor de ingestão de revisão humana",
+    "interpretação de perguntas",
+    "motor de lookup",
+    "analisador de telas",
+    "explorador de runtime",
+    "implementação do adaptador de DokuWiki",
+    "observador de mudanças (daemon)",
+    "interface web"
+  ],
+  "reference": {
+    "access": "read-only",
+    "commit": "4c652a38c37d1c492837e82a0cef06de59de2a6c",
+    "sources": [
+      {
+        "git_blob": "f1457ba2ffb9dc838d0e790acbb2397c2ebe8186",
+        "path": "tools/batch/batch_run.py"
+      },
+      {
+        "git_blob": "3923259335b80264a10d2e1e8ffca5351c4a20b0",
+        "path": "tools/batch/k4_hardening_lib.py"
+      },
+      {
+        "git_blob": "aeaff1f94379349dcc9f1bf98cadf3fbd209df3f",
+        "path": "tools/batch/k4_stage_state.py"
+      },
+      {
+        "git_blob": "da9ed47abb6d5d30ceeb5621ac7ce551d18e2f86",
+        "path": "tools/batch/k4_execution_record.py"
+      }
+    ],
+    "working_tree": "o workspace de referência tinha alterações locais não relacionadas antes e depois desta extração; os quatro arquivos estudados eram idênticos ao commit"
+  },
+  "rejected": [
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Oito estágios e seus arquivos pertencem ao fluxo de um conjunto de dados específico; o núcleo recebe o grafo como configuração.",
+      "source_reference": {
+        "file": "tools/batch/k4_stage_state.py",
+        "symbols": [
+          "STAGES",
+          "STAGE_ARTIFACTS"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Pastas protegidas e a camada humana procurada por nome de arquivo são layout do projeto de origem; a proteção virou política declarada por raiz.",
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "PROTECTED_PATHS",
+          "HUMAN_K42_DIRS"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "A lista de raízes proibidas é específica do repositório de origem; a regra genérica (raízes que não se sobrepõem, escrita só em MUTABLE_OUTPUT) a substitui.",
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "check_root_allowed"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Contratos, prompt mestre e política de revisão gravados no estado, e a unidade de trabalho 'tela', são vocabulário do projeto de origem.",
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_init",
+          "new_screen"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "Data de relógio dentro do estado só existia para parecer reprodutível; o estado novo não grava tempo, e metadados de geração são injetados.",
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "now_iso",
+          "save_state"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "Identificador run-NNN depende do histórico do arquivo; a identidade determinística o substitui.",
+      "source_reference": {
+        "file": "tools/batch/k4_execution_record.py",
+        "symbols": [
+          "begin_run"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "Temporário com nome fixo e sem limpeza; a Extração 1 já entrega a escrita atômica correta.",
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "write_json"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "Devolvia o caminho absoluto quando o arquivo estava fora da raiz, vazando caminho local para o estado.",
+      "source_reference": {
+        "file": "tools/batch/k4_hardening_lib.py",
+        "symbols": [
+          "rel"
+        ]
+      }
+    }
+  ],
+  "title": "Orquestração determinística: grafo de estágios, estado da execução, checkpoints e retomada"
+}

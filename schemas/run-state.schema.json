@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:run-state:1",
+  "title": "RunState",
+  "description": "Estado de uma execução de fluxo: identidade determinística (run_id deriva só de workflow_id, software_id, workflow_version e run_key), status, estado de cada estágio, registro de proteção das raízes e violações. Metadados de geração (started) ficam fora de qualquer identidade. Falhas são dados portáteis: nenhuma exceção do Python é serializada. Regras que o schema não expressa (run_id recalculável, no máximo um estágio RUNNING e coerente com current_stage, status compatível com os estados dos estágios, invariante de cada estado de estágio, ausência de caminho local) são verificadas por core/run_state.py e core/stage_state.py ao carregar.",
+  "type": "object",
+  "required": [
+    "schema", "run_id", "workflow_id", "workflow_version", "run_key", "graph_digest", "config_digest", "input_identity",
+    "status", "started", "stages", "protection", "violations", "violation_total"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "urn:mr-software-intelligence:schema:run-state:1" },
+    "run_id": { "type": "string", "pattern": "^run:sha256:[0-9a-f]{64}$" },
+    "workflow_id": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "workflow_version": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/version" },
+    "run_key": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "graph_digest": { "$ref": "#/$defs/digestRef" },
+    "config_digest": { "$ref": "#/$defs/digestRef" },
+    "knowledge_snapshot_id": { "type": "string", "pattern": "^snap:sha256:[0-9a-f]{64}$" },
+    "input_identity": { "type": "string", "pattern": "^inp:sha256:[0-9a-f]{64}$" },
+    "status": { "enum": ["PENDING", "RUNNING", "COMPLETED", "FAILED", "UNSAFE"] },
+    "current_stage": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "started": {
+      "description": "Metadados de geração. Fora da identidade: o núcleo não lê relógio, então at é fornecido por quem executa.",
+      "type": "object",
+      "required": ["resume_count", "generator"],
+      "additionalProperties": false,
+      "properties": {
+        "resume_count": { "type": "integer", "minimum": 0 },
+        "generator": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "at": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/timestamp" }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/stage" }
+    },
+    "protection": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/protectionRecord" }
+    },
+    "violations": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/violation" }
+    },
+    "violation_total": { "type": "integer", "minimum": 0 },
+    "environment": {
+      "description": "Capacidades opcionais do ambiente capturadas por sondas injetadas (por exemplo, o estado do controle de versão). Ausente quando nenhuma sonda foi usada. O núcleo não exige nenhuma.",
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "digestRef": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "stage": {
+      "type": "object",
+      "required": ["stage_id", "state", "attempts"],
+      "additionalProperties": false,
+      "properties": {
+        "stage_id": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "state": { "enum": ["PENDING", "RUNNING", "COMPLETED", "FAILED", "BLOCKED", "INVALIDATED"] },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "failure": { "$ref": "#/$defs/failure" },
+        "cause": { "$ref": "#/$defs/cause" },
+        "checkpoint_id": { "type": "string", "pattern": "^ckpt:sha256:[0-9a-f]{64}$" },
+        "last_identity": { "type": "string", "pattern": "^art:[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*:sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "failure": {
+      "description": "Falha registrada como dados simples: estágio, categoria, mensagem sem caminho local, tentativa e estado do checkpoint.",
+      "type": "object",
+      "required": ["stage_id", "category", "message", "attempt", "checkpoint_state"],
+      "additionalProperties": false,
+      "properties": {
+        "stage_id": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "category": { "enum": ["HANDLER_ERROR", "INPUT_UNAVAILABLE", "INPUT_MUTATED", "OUTPUT_CONTRACT", "INTERRUPTED", "SOURCE_MUTATION"] },
+        "message": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "attempt": { "type": "integer", "minimum": 0 },
+        "checkpoint_state": { "enum": ["ABSENT", "VALID", "INVALID"] }
+      }
+    },
+    "cause": {
+      "description": "Por que o estágio foi invalidado ou bloqueado. stage_id é o estágio de origem; detail, a entrada, saída ou dependência.",
+      "type": "object",
+      "required": ["code"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "UPSTREAM_INVALIDATED", "UPSTREAM_FAILED", "CHECKPOINT_MISSING", "CHECKPOINT_CORRUPT", "WORKFLOW_CHANGED",
+            "DEFINITION_CHANGED", "SNAPSHOT_CHANGED", "CONFIG_CHANGED", "INPUT_CHANGED", "UPSTREAM_CHANGED",
+            "OUTPUT_SET_CHANGED", "OUTPUT_MISSING", "OUTPUT_MUTATED", "OUTPUT_UNREADABLE"
+          ]
+        },
+        "stage_id": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "detail": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "protectionRecord": {
+      "type": "object",
+      "required": ["root", "protection", "verify", "entries"],
+      "additionalProperties": false,
+      "properties": {
+        "root": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "protection": { "enum": ["READ_ONLY", "FROZEN", "MUTABLE_OUTPUT"] },
+        "verify": { "enum": ["EACH_STAGE", "RUN_END", "NONE"] },
+        "baseline_snapshot_id": { "type": "string", "pattern": "^snap:sha256:[0-9a-f]{64}$" },
+        "entries": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "violation": {
+      "description": "Mudança inesperada em fonte protegida: nome da raiz, tipo e caminho lógico. Nunca conteúdo nem caminho local.",
+      "type": "object",
+      "required": ["root", "protection", "kind", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "root": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "protection": { "enum": ["READ_ONLY", "FROZEN"] },
+        "kind": { "enum": ["MISSING", "MUTATED", "APPEARED", "UNREADABLE", "UNDECLARED"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    }
+  }
+}

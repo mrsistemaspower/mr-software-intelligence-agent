@@ -27,6 +27,10 @@ Todos seguem JSON Schema 2020-12 e têm `$id` no formato `urn:mr-software-intell
 | Schema | Registro | Ideia central |
 |---|---|---|
 | `knowledge-snapshot` | KnowledgeSnapshot | descreve o conhecimento consumido por uma operação, por caminho lógico e hash; a identidade deriva só do conteúdo, nunca de relógio ou máquina. Ver `core/snapshot.py` |
+| `stage-graph` | StageGraph | estágios nomeados com dependências explícitas; a ordem no arquivo é a topológica determinística. Ver `core/stage_graph.py` |
+| `stage-checkpoint` | StageCheckpoint | prova de que um estágio concluído pode ser pulado: amarra o resultado a definição, configuração, snapshot, entradas, dependências e saídas. Ver `core/checkpoint.py` |
+| `run-state` | RunState | andamento de uma execução: identidade determinística, status, estado de cada estágio, proteção das fontes e violações. Ver `core/run_state.py` |
+| `run-config` | RunConfig | configuração portátil e com hash de uma execução: grafo, raízes por nome com classe de proteção, entradas nomeadas e parâmetros por estágio. Ver `core/run_config.py` |
 
 ## Contratos de configuração (como o agente se organiza)
 

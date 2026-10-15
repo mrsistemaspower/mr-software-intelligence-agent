@@ -10,6 +10,7 @@ from core.schema_lite import Registry, Validator
 EXPECTED_SCHEMAS = {
     "agent-workflow", "business-rule", "common", "contradiction", "escalation-policy", "evidence", "fact",
     "human-review", "integration-reference", "interaction", "knowledge-snapshot", "llm-profile", "lookup", "release-change", "screen",
+    "run-config", "run-state", "stage-checkpoint", "stage-graph",
     "software", "software-pack-manifest", "source", "source-adapter", "workflow",
 }
 

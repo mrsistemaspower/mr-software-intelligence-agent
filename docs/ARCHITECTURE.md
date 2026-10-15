@@ -59,12 +59,21 @@ Núcleo pequeno em `core/`, só biblioteca padrão, sem efeito colateral no impo
 | `integrity` | verificação de fonte: "processei esta fonte exata"; ausente, alterada, surgida, ilegível, não declarada |
 | `snapshot` | `KnowledgeSnapshot`: estado de conhecimento consumido, com identidade que não depende de relógio |
 | `identity` | identidade determinística de artefato derivado (tipo, versão, hashes de fonte, parâmetros, snapshot) |
+| `stage_graph` | grafo de estágios configurável: dependências explícitas, validação antes de executar, ordem topológica determinística, ponte com o `agent-workflow` |
+| `stage_state` | ciclo de vida do estágio (seis estados), transições permitidas, falha e causa como dados portáteis |
+| `checkpoint` | prova de que um estágio concluído pode ser pulado: identidade de execução, saídas por hash, validade só se tudo confere |
+| `protection` | classes de proteção de raízes (`READ_ONLY`, `FROZEN`, `MUTABLE_OUTPUT`), linha de base e detecção de mutação, sem reverter nada |
+| `run_config` | configuração portátil e com hash de uma execução (grafo, raízes por nome, entradas, parâmetros, política de interrupção) |
+| `run_state` | estado da execução: identidade determinística, status, estágios, proteção e violações; gravação atômica |
+| `resume` | retomada segura: pula o que vale, invalida o que mudou e só os dependentes, recupera estágio interrompido |
+| `orchestrator` | executa o grafo com tratadores injetados, grava checkpoints e estado; sem modelo, sem relógio, sem rede |
+| `gitstate` | adaptador OPCIONAL do estado do Git (HEAD, sujeira rastreada); nenhum outro módulo o importa |
 
-Os sete últimos módulos vêm da primeira extração do SYSCOM (ver [`AGENT_EXTRACTION_1.md`](AGENT_EXTRACTION_1.md)). Capacidades planejadas e ainda não implementadas (estado de lote, checkpoints, cache, seleção de amostra) são extração do SYSCOM, prevista para os próximos marcos (ver auditoria, seção 8).
+Os sete módulos de `serialization` a `identity` vêm da primeira extração do SYSCOM (ver [`AGENT_EXTRACTION_1.md`](AGENT_EXTRACTION_1.md)). Os nove últimos, de `stage_graph` a `gitstate`, vêm da segunda (ver [`AGENT_EXTRACTION_2.md`](AGENT_EXTRACTION_2.md)): a base determinística de orquestração. Ela decide o que roda, quando pode rodar, o que já concluiu e se a conclusão ainda vale; não chama modelo de linguagem, não lê imagem, não consulta banco e não pergunta a pessoas. Capacidades planejadas e ainda não implementadas (cache, seleção de amostra, executor de `AI_RECHECK`, ingestão de respostas humanas) são extração do SYSCOM, prevista para os próximos marcos (ver auditoria, seção 8).
 
 ### Schemas
 
-Contratos de dados em `schemas/`. Doze conceitos de conhecimento (Software, Source, Evidence, Fact, Screen, Interaction, Lookup, Workflow, BusinessRule, Contradiction, HumanReview, ReleaseChange) mais definições comuns, seis contratos de configuração e um contrato de estado derivado (`knowledge-snapshot`). O bloco `epistemic` é o coração: `status`, `confidence` (separados) e `provenance` (obrigatória).
+Contratos de dados em `schemas/`. Doze conceitos de conhecimento (Software, Source, Evidence, Fact, Screen, Interaction, Lookup, Workflow, BusinessRule, Contradiction, HumanReview, ReleaseChange) mais definições comuns, seis contratos de configuração e cinco contratos de estado derivado (`knowledge-snapshot`, `stage-graph`, `stage-checkpoint`, `run-state`, `run-config`). O bloco `epistemic` é o coração: `status`, `confidence` (separados) e `provenance` (obrigatória).
 
 ### Adapters
 

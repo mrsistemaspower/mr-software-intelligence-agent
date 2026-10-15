@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:run-config:1",
+  "title": "RunConfig",
+  "description": "Configuração portátil e com hash de uma execução: o fluxo, o grafo de estágios, as raízes por NOME com a política de proteção de cada uma (READ_ONLY, FROZEN, MUTABLE_OUTPUT), as entradas nomeadas, os parâmetros por estágio e a política para estágio interrompido. Nenhum caminho local entra aqui: os caminhos das raízes são dados na hora de executar. Regras que o schema não expressa (raízes de estado e saída são MUTABLE_OUTPUT, toda entrada declarada tem vínculo, FROZEN não desliga a verificação, ausência de caminho absoluto) são verificadas por core/run_config.py e core/protection.py.",
+  "type": "object",
+  "required": ["schema", "workflow_id", "workflow_version", "graph", "roots", "state_root", "output_root"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "urn:mr-software-intelligence:schema:run-config:1" },
+    "workflow_id": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "workflow_version": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/version" },
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "run_key": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "graph": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1" },
+    "roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/root" }
+    },
+    "state_root": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "output_root": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/binding" }
+    },
+    "stage_parameters": {
+      "type": "object",
+      "additionalProperties": { "type": "object" }
+    },
+    "interruption_policy": { "enum": ["REQUEUE", "FAIL"] }
+  },
+  "$defs": {
+    "root": {
+      "type": "object",
+      "required": ["name", "protection"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "protection": { "enum": ["READ_ONLY", "FROZEN", "MUTABLE_OUTPUT"] },
+        "verify": { "enum": ["EACH_STAGE", "RUN_END", "NONE"] },
+        "scope": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1024 }
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "required": ["root", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "root": { "$ref": "urn:mr-software-intelligence:schema:stage-graph:1#/$defs/name" },
+        "path": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    }
+  }
+}

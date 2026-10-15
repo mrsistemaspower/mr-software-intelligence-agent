@@ -23,6 +23,10 @@ Os exemplos são a forma conceitual do pedido. Cada ambiente de modelo expõe os
 - `escalates_to_human`: se pode abrir revisões de rota humana.
 - `policies`: as políticas obrigatórias.
 
+## Passos como estágios
+
+Os `steps` de um workflow são também a definição de um grafo de estágios executável (`core/stage_graph.py`, `graph_from_agent_workflow`). Sem mais nada, cada passo depende do anterior. Um passo pode declarar `depends_on` (lista de ids de passos) para descrever ramos independentes; lista vazia torna o passo uma raiz. É um único conceito de fluxo: o mesmo arquivo descreve o procedimento e alimenta o motor de retomada (`docs/AGENT_EXTRACTION_2.md`).
+
 ## Workflow do agente não é workflow do software
 
 Aqui "workflow" é um procedimento do agente. O fluxo de negócio do software alvo é o registro `workflow` (`schemas/workflow.schema.json`), que mora no pacote do software.
