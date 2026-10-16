@@ -4,4 +4,4 @@ Núcleo pequeno, sem dependências externas e sem conhecimento de qualquer softw
 Nenhum módulo carrega dados no import.
 """
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"

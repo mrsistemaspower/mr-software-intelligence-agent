@@ -1,13 +1,14 @@
 # adapters/
 
-Adaptadores ligam o agente ao mundo exterior. Há dois tipos, e eles nunca se misturam.
+Adaptadores ligam o agente ao mundo exterior. Há três tipos, e eles nunca se misturam.
 
 | Pasta | Liga o agente a | Valida com |
 |---|---|---|
 | `sources/` | fontes de evidência sobre o software (capturas, arquivos, documentação, código, banco, execução, especialistas) | `schemas/source-adapter.schema.json` |
-| `llm/` | ambientes de modelo de linguagem (perfis por provedor) | `schemas/llm-profile.schema.json` |
+| `llm/` | ambientes de modelo de linguagem (perfis por provedor); a única camada que pode nomear um provedor | `schemas/llm-profile.schema.json` |
+| `models/` | modelos de linguagem pela fronteira neutra `execute(task) -> ModelResult`: a base e adaptadores sintéticos de teste, sem SDK nem rede. Ver [`models/README.md`](models/README.md) | `schemas/model-task.schema.json`, `schemas/model-result.schema.json` |
 
-Neste marco só existem **contratos**. Nenhuma integração pesada foi implementada.
+Neste marco só existem **contratos** (e adaptadores de modelo sintéticos para provar o contrato). Nenhuma integração pesada foi implementada.
 
 ## Contrato dos adaptadores de fonte
 

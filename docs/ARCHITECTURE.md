@@ -68,19 +68,25 @@ Núcleo pequeno em `core/`, só biblioteca padrão, sem efeito colateral no impo
 | `resume` | retomada segura: pula o que vale, invalida o que mudou e só os dependentes, recupera estágio interrompido |
 | `orchestrator` | executa o grafo com tratadores injetados, grava checkpoints e estado; sem modelo, sem relógio, sem rede |
 | `gitstate` | adaptador OPCIONAL do estado do Git (HEAD, sujeira rastreada); nenhum outro módulo o importa |
+| `model_task` | tarefa estruturada e neutra de provedor para um modelo: evidência autorizada presa por hash, contexto permitido, contrato de saída, identidade determinística |
+| `model_adapter` | fronteira do adaptador de modelo (`execute(task) -> ModelResult`), descritor, capacidades e fronteira de dados; elegibilidade conferida ANTES de executar |
+| `ai_recheck` | pedido e resultado de `AI_RECHECK`, validação da resposta do modelo, teto epistêmico `INFERRED` e rota (reuso, lacuna de fonte, candidato humano, falha) |
+| `recheck_engine` | executor de `AI_RECHECK`: elegibilidade, integridade da evidência, adaptador, validação; falha técnica é `FAILED`, nunca conhecimento |
+| `recheck_stage` | `AI_RECHECK` como tratador do orquestrador, com a identidade do adaptador nos parâmetros do checkpoint; não é outro orquestrador |
 
-Os sete módulos de `serialization` a `identity` vêm da primeira extração do SYSCOM (ver [`AGENT_EXTRACTION_1.md`](AGENT_EXTRACTION_1.md)). Os nove últimos, de `stage_graph` a `gitstate`, vêm da segunda (ver [`AGENT_EXTRACTION_2.md`](AGENT_EXTRACTION_2.md)): a base determinística de orquestração. Ela decide o que roda, quando pode rodar, o que já concluiu e se a conclusão ainda vale; não chama modelo de linguagem, não lê imagem, não consulta banco e não pergunta a pessoas. Capacidades planejadas e ainda não implementadas (cache, seleção de amostra, executor de `AI_RECHECK`, ingestão de respostas humanas) são extração do SYSCOM, prevista para os próximos marcos (ver auditoria, seção 8).
+Os sete módulos de `serialization` a `identity` vêm da primeira extração do SYSCOM (ver [`AGENT_EXTRACTION_1.md`](AGENT_EXTRACTION_1.md)). Os nove seguintes, de `stage_graph` a `gitstate`, vêm da segunda (ver [`AGENT_EXTRACTION_2.md`](AGENT_EXTRACTION_2.md)): a base determinística de orquestração. Ela decide o que roda, quando pode rodar, o que já concluiu e se a conclusão ainda vale; não chama modelo de linguagem, não lê imagem, não consulta banco e não pergunta a pessoas. Os cinco últimos, de `model_task` a `recheck_stage`, vêm da terceira (ver [`AGENT_EXTRACTION_3.md`](AGENT_EXTRACTION_3.md)): o executor de `AI_RECHECK` e a fronteira do adaptador de modelo. O núcleo decide o que rechecar, com que evidência, que forma a resposta tem e se ela é aceitável; só um adaptador substituível fala com um modelo, e nenhum SDK, rede ou credencial entra no núcleo. Capacidades planejadas e ainda não implementadas (cache, seleção de amostra, ingestão de respostas humanas) são extração do SYSCOM, prevista para os próximos marcos (ver auditoria, seção 8).
 
 ### Schemas
 
-Contratos de dados em `schemas/`. Doze conceitos de conhecimento (Software, Source, Evidence, Fact, Screen, Interaction, Lookup, Workflow, BusinessRule, Contradiction, HumanReview, ReleaseChange) mais definições comuns, seis contratos de configuração e cinco contratos de estado derivado (`knowledge-snapshot`, `stage-graph`, `stage-checkpoint`, `run-state`, `run-config`). O bloco `epistemic` é o coração: `status`, `confidence` (separados) e `provenance` (obrigatória).
+Contratos de dados em `schemas/`. Doze conceitos de conhecimento (Software, Source, Evidence, Fact, Screen, Interaction, Lookup, Workflow, BusinessRule, Contradiction, HumanReview, ReleaseChange) mais definições comuns, seis contratos de configuração, cinco contratos de estado derivado (`knowledge-snapshot`, `stage-graph`, `stage-checkpoint`, `run-state`, `run-config`) e quatro contratos de modelo (`model-task`, `model-result`, `ai-recheck-request`, `ai-recheck-result`). O bloco `epistemic` é o coração: `status`, `confidence` (separados) e `provenance` (obrigatória).
 
 ### Adapters
 
-Dois tipos, nunca misturados:
+Três tipos, nunca misturados:
 
 - `adapters/sources/`: nove adaptadores de fonte (capturas, filesystem, documentação, wiki, código, banco, execução, notas de versão, especialista). Contrato: somente leitura, determinístico, sem interpretação. Hoje só descritores.
-- `adapters/llm/`: perfis de ambientes de modelo.
+- `adapters/llm/`: perfis de ambientes de modelo. A única camada que pode nomear um provedor.
+- `adapters/models/`: a base e os adaptadores sintéticos de modelo, neutros de provedor. Contrato: `execute(task) -> ModelResult`. Adaptadores de provedor ainda não existem; quando existirem, ficam ao lado do seu perfil em `adapters/llm/`.
 
 ### Workflows
 

@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:ai-recheck-result:1",
+  "title": "AIRecheckResult",
+  "description": "Resultado ACEITO de um AI_RECHECK, já validado, com a rota que segue e a proveniência da execução. Cinco estados: RESOLVED (reutilizável), SOURCE_GAP (falta fonte; vai para o backlog de aquisição), HUMAN_DECISION (a evidência não decide; candidato a escalonamento humano), INCONCLUSIVE (válido, sem conclusão; cai na rota de contingência da política) e FAILED (falha técnica; não é conhecimento). Nenhum estado cria validação humana: todo achado é INFERRED e a proveniência registra esse teto. Guarda só uma justificativa curta e auditável, nunca raciocínio interno, e nunca o conteúdo bruto das evidências. result_id deriva do conteúdo aceito (sem proveniência nem rota) e é conferido ao carregar. Este schema também define modelOutput: o contrato da resposta bruta que o modelo deve devolver (o modelo não escolhe status epistêmico, rota nem proveniência).",
+  "type": "object",
+  "required": ["kind", "result_id", "request_id", "status", "routing", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "ai-recheck-result" },
+    "result_id": { "type": "string", "pattern": "^art:ai-recheck\\.result:sha256:[0-9a-f]{64}$" },
+    "request_id": { "type": "string", "pattern": "^art:ai-recheck\\.request:sha256:[0-9a-f]{64}$" },
+    "status": { "enum": ["RESOLVED", "SOURCE_GAP", "HUMAN_DECISION", "INCONCLUSIVE", "FAILED"] },
+    "rationale": { "$ref": "#/$defs/rationale" },
+    "evidence_used": { "$ref": "#/$defs/refList" },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "confidence": {
+      "description": "Confiança do resultado RESOLVED: a MENOR confiança entre os achados.",
+      "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence"
+    },
+    "source_gap": { "$ref": "#/$defs/sourceGap" },
+    "decision": { "$ref": "#/$defs/decision" },
+    "inconclusive": {
+      "type": "object",
+      "required": ["unresolved", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "unresolved": { "$ref": "#/$defs/refList" },
+        "reason": { "enum": ["MODEL_REPORTED", "LOW_CONFIDENCE"] }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "required": ["kind", "message", "retryable"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "ROUND_LIMIT", "ADAPTER_INELIGIBLE", "EVIDENCE_UNAVAILABLE", "EVIDENCE_CHANGED", "EVIDENCE_UNDECODABLE",
+            "ADAPTER_FAILURE", "ADAPTER_EXCEPTION", "MALFORMED_RESPONSE", "UNAUTHORIZED_EVIDENCE"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "retryable": { "type": "boolean" },
+        "reasons": {
+          "description": "Códigos estáveis de recusa, quando o adaptador não era elegível.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      }
+    },
+    "routing": { "$ref": "#/$defs/routing" },
+    "provenance": { "$ref": "#/$defs/provenance" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "RESOLVED" } }, "required": ["status"] },
+      "then": {
+        "required": ["rationale", "evidence_used", "findings", "confidence"],
+        "properties": { "findings": { "minItems": 1 } },
+        "not": { "anyOf": [{ "required": ["source_gap"] }, { "required": ["decision"] }, { "required": ["inconclusive"] }, { "required": ["failure"] }] }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "SOURCE_GAP" } }, "required": ["status"] },
+      "then": {
+        "required": ["rationale", "evidence_used", "source_gap"],
+        "not": { "anyOf": [{ "required": ["findings"] }, { "required": ["decision"] }, { "required": ["inconclusive"] }, { "required": ["failure"] }, { "required": ["confidence"] }] }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "HUMAN_DECISION" } }, "required": ["status"] },
+      "then": {
+        "required": ["rationale", "evidence_used", "decision"],
+        "not": { "anyOf": [{ "required": ["findings"] }, { "required": ["source_gap"] }, { "required": ["inconclusive"] }, { "required": ["failure"] }, { "required": ["confidence"] }] }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "INCONCLUSIVE" } }, "required": ["status"] },
+      "then": {
+        "required": ["rationale", "evidence_used", "inconclusive"],
+        "not": { "anyOf": [{ "required": ["source_gap"] }, { "required": ["decision"] }, { "required": ["failure"] }, { "required": ["confidence"] }] }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "FAILED" } }, "required": ["status"] },
+      "then": {
+        "required": ["failure"],
+        "not": {
+          "anyOf": [
+            { "required": ["rationale"] }, { "required": ["evidence_used"] }, { "required": ["findings"] }, { "required": ["confidence"] },
+            { "required": ["source_gap"] }, { "required": ["decision"] }, { "required": ["inconclusive"] }
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "rationale": {
+      "description": "Justificativa curta e auditável. Não é raciocínio interno.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "refList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" }
+    },
+    "sourceGap": {
+      "description": "O que falta, por que a evidência existente não basta e, se souber, o tipo de fonte recomendado (mesmo vocabulário de source.kind).",
+      "type": "object",
+      "required": ["missing", "insufficient_because"],
+      "additionalProperties": false,
+      "properties": {
+        "missing": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+        },
+        "insufficient_because": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "recommended_source": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sourceKind" }
+      }
+    },
+    "decision": {
+      "description": "Uma escolha que a evidência não decide, com as alternativas que ela sustenta.",
+      "type": "object",
+      "required": ["question", "options"],
+      "additionalProperties": false,
+      "properties": {
+        "question": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+        }
+      }
+    },
+    "modelFinding": {
+      "description": "Achado como o modelo o devolve. Sem status, sem validação, sem quem validou: o modelo não escolhe o nível epistêmico.",
+      "type": "object",
+      "required": ["claim_ref", "statement", "evidence_refs", "confidence", "basis"],
+      "additionalProperties": false,
+      "properties": {
+        "claim_ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "statement": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "evidence_refs": { "$ref": "#/$defs/refList" },
+        "confidence": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence" },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "finding": {
+      "description": "Achado aceito. O status é sempre INFERRED: nenhuma segunda passada de IA promove a VALIDATED.",
+      "type": "object",
+      "required": ["claim_ref", "statement", "evidence_refs", "confidence", "basis", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "claim_ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "statement": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "evidence_refs": { "$ref": "#/$defs/refList" },
+        "confidence": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence" },
+        "basis": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "status": { "const": "INFERRED" }
+      }
+    },
+    "routing": {
+      "description": "Para onde o resultado segue. proceeds só é verdadeiro para REUSE.",
+      "type": "object",
+      "required": ["route", "destination", "proceeds", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "route": { "enum": ["REUSE", "SOURCE_GAP", "HUMAN_DECISION", "HUMAN_VALIDATION", "FAILURE"] },
+        "destination": { "enum": ["ai_result", "source_backlog", "human_review_candidates", "failure_handling"] },
+        "proceeds": { "type": "boolean" },
+        "reason": { "type": "string", "pattern": "^[a-z][a-z0-9:-]{0,63}$" },
+        "needed_source": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sourceKind" }
+      }
+    },
+    "snapshotEntry": {
+      "type": "object",
+      "required": ["ref", "sha256", "byte_length"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "sha256": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" },
+        "byte_length": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "provenance": {
+      "description": "Como o resultado foi produzido, para auditoria. A identidade do pedido e do resultado não depende de nada daqui. reproducibility só diz DETERMINISTIC_ADAPTER quando o adaptador se declara determinístico: não se promete reprodutibilidade de um modelo real.",
+      "type": "object",
+      "required": ["executor", "adapter", "evidence_snapshot", "evidence_snapshot_digest", "evidence_verified", "attempt", "round", "reproducibility", "epistemic_ceiling"],
+      "additionalProperties": false,
+      "properties": {
+        "executor": { "const": "ai-recheck/1" },
+        "task_id": { "type": "string", "pattern": "^art:model\\.task:sha256:[0-9a-f]{64}$" },
+        "adapter": { "$ref": "urn:mr-software-intelligence:schema:model-result:1#/$defs/adapterIdentity" },
+        "model": { "$ref": "urn:mr-software-intelligence:schema:model-result:1#/$defs/modelIdentity" },
+        "response_sha256": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" },
+        "usage": { "$ref": "urn:mr-software-intelligence:schema:model-result:1#/$defs/usage" },
+        "evidence_snapshot": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/snapshotEntry" }
+        },
+        "evidence_snapshot_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "evidence_verified": { "type": "boolean" },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "round": { "type": "integer", "minimum": 1 },
+        "reproducibility": { "enum": ["DETERMINISTIC_ADAPTER", "NOT_GUARANTEED"] },
+        "epistemic_ceiling": { "const": "INFERRED" }
+      }
+    },
+    "modelOutput": {
+      "description": "Contrato ai-recheck-output/1: a resposta bruta do modelo. Estrita (nenhum campo desconhecido). RESOLVED exige um achado por afirmação; INCONCLUSIVE lista as não resolvidas; SOURCE_GAP e HUMAN_DECISION não trazem achados. As regras entre campos (referências conhecidas, cobertura das afirmações) são conferidas por core/ai_recheck.py.",
+      "type": "object",
+      "required": ["status", "rationale", "evidence_used"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["RESOLVED", "SOURCE_GAP", "HUMAN_DECISION", "INCONCLUSIVE"] },
+        "rationale": { "$ref": "#/$defs/rationale" },
+        "evidence_used": { "$ref": "#/$defs/refList" },
+        "findings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/modelFinding" }
+        },
+        "source_gap": { "$ref": "#/$defs/sourceGap" },
+        "decision": { "$ref": "#/$defs/decision" },
+        "unresolved": { "$ref": "#/$defs/refList" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "RESOLVED" } }, "required": ["status"] },
+          "then": {
+            "required": ["findings"],
+            "properties": { "findings": { "minItems": 1 } },
+            "not": { "anyOf": [{ "required": ["source_gap"] }, { "required": ["decision"] }, { "required": ["unresolved"] }] }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "SOURCE_GAP" } }, "required": ["status"] },
+          "then": {
+            "required": ["source_gap"],
+            "not": { "anyOf": [{ "required": ["findings"] }, { "required": ["decision"] }, { "required": ["unresolved"] }] }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "HUMAN_DECISION" } }, "required": ["status"] },
+          "then": {
+            "required": ["decision"],
+            "not": { "anyOf": [{ "required": ["findings"] }, { "required": ["source_gap"] }, { "required": ["unresolved"] }] }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "INCONCLUSIVE" } }, "required": ["status"] },
+          "then": {
+            "required": ["unresolved"],
+            "not": { "anyOf": [{ "required": ["source_gap"] }, { "required": ["decision"] }] }
+          }
+        }
+      ]
+    }
+  }
+}

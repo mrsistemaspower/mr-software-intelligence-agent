@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:ai-recheck-request:1",
+  "title": "AIRecheckRequest",
+  "description": "Pedido de uma segunda análise focada, por IA, de evidência JÁ disponível, para uma ambiguidade que pode ser resolvida sem coletar fonte nova, sem perguntar a uma pessoa e sem alterar o sistema de origem. Genérico: o assunto (subject) pode ser código, documentação, esquema de banco, rastro de execução, API, configuração, captura de tela ou qualquer outro; nada aqui pressupõe tela, botão, aba ou grid. A evidência listada é a ÚNICA que o modelo pode usar. O pedido não carrega o conteúdo das evidências (só hash, tipo e locator), nem caminho local. request_id deriva do conteúdo e é conferido ao carregar (core/ai_recheck.py).",
+  "type": "object",
+  "required": [
+    "kind", "request_id", "round", "subject", "ambiguity", "reason", "claims", "evidence", "expected_output",
+    "required_capabilities", "data_policy", "risk_level"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "ai-recheck-request" },
+    "request_id": { "type": "string", "pattern": "^art:ai-recheck\\.request:sha256:[0-9a-f]{64}$" },
+    "round": {
+      "description": "Qual passada de recheck é esta. Por política cada pedido é rechecado uma vez: a segunda passada só existe se a política permitir.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "subject": {
+      "description": "O artefato em dúvida. kind é aberto (por exemplo source-code, database-schema, runtime-trace, api, configuration, screen).",
+      "type": "object",
+      "required": ["ref", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "kind": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" },
+        "title": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+      }
+    },
+    "ambiguity": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+    "reason": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+    "claims": {
+      "description": "Afirmações ou itens críticos em dúvida. Cada um deve ser tratado pela resposta (resolvido, ou listado como não resolvido).",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["claim_ref", "statement"],
+        "additionalProperties": false,
+        "properties": {
+          "claim_ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+          "statement": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+          "current_confidence": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence" }
+        }
+      }
+    },
+    "evidence": {
+      "description": "Evidência autorizada. Só estas referências podem ser citadas pela resposta.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/evidenceRef" }
+    },
+    "prior_interpretation": {
+      "description": "A interpretação existente que está em dúvida. Nunca VALIDATED: conhecimento validado por pessoa não é rechecado por IA.",
+      "type": "object",
+      "required": ["summary", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "status": { "enum": ["OBSERVED", "INFERRED"] },
+        "confidence": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/confidence" }
+      }
+    },
+    "expected_output": {
+      "description": "O contrato de saída exigido do modelo.",
+      "type": "object",
+      "required": ["contract", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "contract": { "const": "ai-recheck-output" },
+        "version": { "const": "1" }
+      }
+    },
+    "required_capabilities": {
+      "description": "Capacidades pedidas explicitamente; o executor soma structured-output e as que a modalidade da evidência impõe (imagem exige vision).",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/capability" }
+    },
+    "data_policy": {
+      "description": "Até onde a evidência deste pedido pode ir. Obrigatório: quem pede decide, o núcleo não presume.",
+      "type": "object",
+      "required": ["max_boundary"],
+      "additionalProperties": false,
+      "properties": {
+        "max_boundary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/boundary" }
+      }
+    },
+    "risk_level": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/riskLevel" }
+  }
+}

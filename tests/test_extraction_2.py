@@ -260,7 +260,8 @@ class RuntimeCompatibility(unittest.TestCase):
         self.assertGreaterEqual(sys.version_info[:2], INTENDED_MINIMUM)
 
     def test_core_version_was_bumped_for_the_new_capability(self) -> None:
-        self.assertEqual(__version__, "1.2.0")
+        # Piso, não igualdade: extrações posteriores sobem a versão do núcleo sem desfazer esta.
+        self.assertGreaterEqual(tuple(int(part) for part in __version__.split(".")), (1, 2, 0))
 
 
 class ImportHasNoSideEffects(TempDirCase):

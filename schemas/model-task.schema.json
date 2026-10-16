@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:model-task:1",
+  "title": "ModelTask",
+  "description": "Pedido estruturado e neutro de provedor que o agente entrega a um adaptador de modelo. Carrega a evidência AUTORIZADA (por hash), o único contexto permitido, o contrato da resposta e o que se exige do adaptador (capacidades e fronteira de dados). Não carrega prompt de provedor, credencial nem caminho local. O conteúdo bruto das evidências, quando presente em allowed_context.evidence, é conferido contra o sha256 de evidence_refs por core/model_task.py. A tarefa é transitória: o agente a entrega ao adaptador e não a grava. Este schema também define os blocos compartilhados pelos demais contratos de modelo.",
+  "type": "object",
+  "required": [
+    "kind", "task_id", "task_type", "objective", "instructions", "evidence_refs", "allowed_context", "output_contract",
+    "required_capabilities", "max_boundary", "risk_level", "attempt"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "model-task" },
+    "task_id": { "$ref": "#/$defs/artifactId", "pattern": "^art:model\\.task:sha256:[0-9a-f]{64}$" },
+    "task_type": { "$ref": "#/$defs/name" },
+    "objective": { "$ref": "#/$defs/text" },
+    "instructions": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/text" }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceRef" }
+    },
+    "allowed_context": {
+      "description": "O único contexto que o modelo pode usar. A chave evidence, se existir, mapeia ref autorizada -> conteúdo.",
+      "type": "object",
+      "properties": {
+        "evidence": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/evidencePayload" }
+        }
+      }
+    },
+    "output_contract": { "$ref": "#/$defs/outputContract" },
+    "required_capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/capability" }
+    },
+    "max_boundary": { "$ref": "#/$defs/boundary" },
+    "risk_level": { "$ref": "#/$defs/riskLevel" },
+    "attempt": {
+      "description": "Metadado: número da tentativa técnica. Fora da identidade.",
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "$defs": {
+    "artifactId": {
+      "type": "string",
+      "pattern": "^art:[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*:sha256:[0-9a-f]{64}$"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$"
+    },
+    "ref": {
+      "description": "Identificador portátil de uma evidência ou afirmação. Sem barra invertida e sem letra de unidade.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "capability": {
+      "description": "Capacidades de modelo. As três primeiras vêm de common#/$defs/capability; tool-use só existe para modelos.",
+      "enum": ["vision", "structured-output", "long-context", "tool-use"]
+    },
+    "boundary": {
+      "description": "Até onde o dado pode ir, em ordem crescente de exposição. LOCAL não sai do ambiente; PRIVATE usa rede controlada por quem usa; EXTERNAL é um terceiro.",
+      "enum": ["LOCAL", "PRIVATE", "EXTERNAL"]
+    },
+    "riskLevel": {
+      "enum": ["LOW", "NORMAL", "HIGH"]
+    },
+    "evidenceRef": {
+      "description": "Evidência autorizada, presa por hash. contains_sensitive_data é tri-estado como em source: null = não conferido e é tratado como possivelmente sensível. locator diz a quem executa onde ler (nome lógico) e não é enviado ao modelo.",
+      "type": "object",
+      "required": ["ref", "sha256", "source_type", "modality", "byte_length", "contains_sensitive_data"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "#/$defs/ref" },
+        "sha256": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" },
+        "source_type": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sourceKind" },
+        "modality": { "enum": ["text", "image", "binary"] },
+        "media_type": { "type": "string", "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$" },
+        "byte_length": { "type": "integer", "minimum": 0 },
+        "contains_sensitive_data": { "type": ["boolean", "null"] },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 256 }
+      }
+    },
+    "evidencePayload": {
+      "description": "Conteúdo de uma evidência na tarefa: texto UTF-8 para modalidade text; base64 para as demais.",
+      "type": "object",
+      "required": ["media_type", "encoding", "content"],
+      "additionalProperties": false,
+      "properties": {
+        "media_type": { "type": "string", "minLength": 3 },
+        "encoding": { "enum": ["utf-8", "base64"] },
+        "content": { "type": "string" }
+      }
+    },
+    "outputContract": {
+      "description": "Forma exigida da resposta: nome, versão e a referência do schema que a valida.",
+      "type": "object",
+      "required": ["name", "version", "schema_ref"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "version": { "$ref": "#/$defs/version" },
+        "schema_ref": { "type": "string", "pattern": "^urn:mr-software-intelligence:schema:", "maxLength": 256 }
+      }
+    }
+  }
+}

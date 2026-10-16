@@ -1,0 +1,702 @@
+{
+  "base_commit": "49a05b266908a5ef3d45650286d7cecd133f2559",
+  "capabilities": [
+    {
+      "agent_destination": [
+        {
+          "file": "core/recheck_engine.py",
+          "symbols": [
+            "run_recheck",
+            "EvidenceReader",
+            "MappingEvidenceReader",
+            "EvidenceUnavailable",
+            "EvidenceChanged"
+          ]
+        }
+      ],
+      "capability": "Executor de AI_RECHECK: de fila e registro manual a capacidade executável",
+      "generic_invariant": "AI_RECHECK é uma função do agente: pedido, adaptador e leitor de evidência entram; um resultado validado (ou uma falha técnica) sai. O executor não grava arquivo, não lê relógio e nunca chama o adaptador duas vezes por conta própria.",
+      "id": "EX3-01",
+      "rejected_coupling": [
+        "resultado do recheck digitado por um operador (status e itens não resolvidos como argumentos de linha de comando)",
+        "unidade de trabalho 'tela' e estado de lote acoplado ao projeto de origem",
+        "marcação do recheck como 'pending' num registro por tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/k4_2_correction.py",
+            "symbols": [
+              "ai_recheck_queue"
+            ]
+          }
+        ],
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_review",
+          "op_recheck"
+        ]
+      },
+      "tests": [
+        "tests/test_recheck_engine.py::ResolvedRecheck",
+        "tests/test_recheck_engine.py::OtherVerdicts",
+        "tests/test_recheck_engine.py::TechnicalFailures",
+        "tests/test_recheck_stage.py::CaseAResolved"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "AIRecheckRequest",
+            "RecheckClaim",
+            "PriorInterpretation"
+          ]
+        },
+        {
+          "file": "schemas/ai-recheck-request.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Pedido genérico de AI_RECHECK: assunto, ambiguidade, afirmações, evidência autorizada, interpretação existente e motivo",
+      "generic_invariant": "Um recheck precisa de um assunto qualquer, da ambiguidade, das afirmações em dúvida e da evidência EXISTENTE que pode conter a resposta. Sem evidência não há o que reler, e o pedido é recusado (a rota é SOURCE_GAP).",
+      "id": "EX3-02",
+      "rejected_coupling": [
+        "entradas fixas por pasta de tela (pacote de conhecimento, validação, camada humana)",
+        "vocabulário de item crítico: identidade, caminho de menu, campos, botões, abas, grid",
+        "flags secundárias de revisão específicas de tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/k4_2_correction.py",
+            "symbols": [
+              "ai_recheck_queue"
+            ]
+          }
+        ],
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive",
+          "derive_dir"
+        ]
+      },
+      "tests": [
+        "tests/test_ai_recheck.py::TheRequestIsGeneric",
+        "tests/test_recheck_engine.py::ASecondSyntheticSoftware"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "AIRecheckResult",
+            "assemble_result",
+            "STATUSES",
+            "MODEL_STATUSES"
+          ]
+        },
+        {
+          "file": "schemas/ai-recheck-result.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Resultado explícito de AI_RECHECK com vocabulário mínimo de estados",
+      "generic_invariant": "O resultado de um recheck é RESOLVED, SOURCE_GAP, HUMAN_DECISION, INCONCLUSIVE ou FAILED. O modelo só afirma os quatro primeiros; FAILED é falha técnica decidida pelo executor e nunca é conhecimento. Itens não resolvidos são dado do resultado, não uma lista solta.",
+      "id": "EX3-03",
+      "rejected_coupling": [
+        "status 'completed' ou 'pending' registrado à mão",
+        "lista solta de ids não resolvidos sem rota",
+        "data de relógio gravada no registro do recheck"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "derive"
+            ]
+          }
+        ],
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_recheck"
+        ]
+      },
+      "tests": [
+        "tests/test_ai_recheck.py::VocabularyMatchesTheSchemas",
+        "tests/test_ai_recheck.py::ResultContract"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "validate_model_output",
+            "OUTPUT_CONTRACT"
+          ]
+        },
+        {
+          "file": "core/model_task.py",
+          "symbols": [
+            "ModelTask",
+            "EvidenceRef",
+            "check_output",
+            "evidence_payload",
+            "OutputContract"
+          ]
+        }
+      ],
+      "capability": "Evidência autorizada e validação determinística da resposta do modelo",
+      "generic_invariant": "O recheck só pode usar a evidência listada no pedido. A resposta do modelo nunca é confiada: schema estrito, referências só as autorizadas, cobertura das afirmações. Uma referência fora da lista invalida a resposta inteira; nada é aceito pela metade.",
+      "id": "EX3-04",
+      "rejected_coupling": [
+        "análise caso a caso de duas telas específicas escrita em prosa dentro do relatório",
+        "evidência complementar identificada por nomes de arquivo de um acervo do projeto de origem"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "SOURCE_LIMIT_CODES"
+            ]
+          }
+        ],
+        "file": "tools/batch/k4_2_review.py",
+        "symbols": [
+          "sec5_6"
+        ]
+      },
+      "tests": [
+        "tests/test_ai_recheck.py::ModelOutputValidation",
+        "tests/test_recheck_engine.py::UnauthorizedEvidence",
+        "tests/test_recheck_engine.py::EvidenceIntegrity",
+        "tests/test_model_task.py::EvidenceDisciplineInTheTask"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "AIRecheckResult",
+            "PriorInterpretation",
+            "EPISTEMIC_CEILING"
+          ]
+        },
+        {
+          "file": "schemas/ai-recheck-result.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Teto epistêmico: AI_RECHECK nunca cria validação humana",
+      "generic_invariant": "Rotear não promove nada. Todo achado de um recheck é INFERRED; o modelo não tem campo para escolher o nível; uma interpretação VALIDATED por pessoa não é rechecada por IA; uma segunda passada que concorda com a primeira não promove nada.",
+      "id": "EX3-05",
+      "rejected_coupling": [
+        "reescrita de campos de validação em arquivos de entrada existentes",
+        "dependência de quem preenche o campo 'revisado por' fora do contrato"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR"
+      ],
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive",
+          "build_report"
+        ]
+      },
+      "tests": [
+        "tests/test_recheck_engine.py::EpistemicCeiling",
+        "tests/test_ai_recheck.py::ResultContract"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "route_for",
+            "source_gap_entry",
+            "human_review_candidate",
+            "RecheckPolicy",
+            "FALLBACK_ROUTES"
+          ]
+        }
+      ],
+      "capability": "Roteamento de cada estado e visões para quem consome a rota",
+      "generic_invariant": "RESOLVED segue como resultado reutilizável; SOURCE_GAP vai para o backlog de aquisição de fonte, com o que falta e o tipo de fonte; HUMAN_DECISION vira candidato a escalonamento humano, sem perguntar a ninguém; INCONCLUSIVE segue a contingência da política. Só REUSE continua.",
+      "id": "EX3-06",
+      "rejected_coupling": [
+        "árvore de classes com ordem fixa e gatilhos por tipo de componente de tela",
+        "fila textual por classe ('volta para a IA', 'SOURCE_BACKLOG: captura')",
+        "vínculo a uma política de revisão e a um schema de triagem do projeto de origem"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive",
+          "CLASSES"
+        ]
+      },
+      "tests": [
+        "tests/test_ai_recheck.py::Routing",
+        "tests/test_ai_recheck.py::ConsumerViews",
+        "tests/test_recheck_stage.py::CaseBSourceGap",
+        "tests/test_recheck_stage.py::CaseCHumanDecision"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "RecheckPolicy"
+          ]
+        },
+        {
+          "file": "core/recheck_engine.py",
+          "symbols": [
+            "run_recheck"
+          ]
+        }
+      ],
+      "capability": "Um recheck por pedido, sem laço, e falha técnica separada de resultado inconclusivo",
+      "generic_invariant": "Concluído o recheck, ele resolve ou escala; nunca se repete em laço. INCONCLUSIVE não roteia de volta para AI_RECHECK. Falha técnica é repetida pelo motor de estágios, dentro da RetryPolicy; um resultado inconclusivo válido não é repetido.",
+      "id": "EX3-07",
+      "rejected_coupling": [
+        "lista de itens críticos não resolvidos que reabre a revisão da tela",
+        "esgotamento de recheck decidido por flag de tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/batch/batch_run.py",
+            "symbols": [
+              "op_review"
+            ]
+          }
+        ],
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive"
+        ]
+      },
+      "tests": [
+        "tests/test_ai_recheck.py::PolicyRules",
+        "tests/test_recheck_engine.py::TechnicalFailures",
+        "tests/test_recheck_stage.py::TechnicalFailureAndRetry"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/model_task.py",
+          "symbols": [
+            "ModelTask",
+            "TaskRequirements",
+            "BOUNDARIES",
+            "CAPABILITIES"
+          ]
+        },
+        {
+          "file": "core/model_adapter.py",
+          "symbols": [
+            "ModelAdapter",
+            "AdapterDescriptor",
+            "ModelResult",
+            "ModelFailure",
+            "ModelIdentity",
+            "config_fingerprint"
+          ]
+        },
+        {
+          "file": "adapters/models/base.py",
+          "symbols": [
+            "BaseModelAdapter"
+          ]
+        },
+        {
+          "file": "adapters/models/scripted.py",
+          "symbols": [
+            "ScriptedModelAdapter",
+            "RuleBasedModelAdapter",
+            "RawReturn"
+          ]
+        },
+        {
+          "file": "schemas/model-task.schema.json",
+          "symbols": []
+        },
+        {
+          "file": "schemas/model-result.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Fronteira do adaptador de modelo e tarefa de modelo neutras de provedor, com adaptadores sintéticos determinísticos",
+      "generic_invariant": "O agente decide o que perguntar, com que evidência e que forma a resposta tem; o adaptador só envia a tarefa estruturada a um modelo e devolve uma resposta estruturada ou uma falha. Contagem de tokens, rede e SDK não fazem parte do contrato.",
+      "id": "EX3-08",
+      "rejected_coupling": [
+        "o modelo é uma pessoa operando o chat fora do repositório e digitando o resultado",
+        "nenhum contrato de identidade do modelo nem de configuração"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_recheck"
+        ]
+      },
+      "tests": [
+        "tests/test_model_task.py::TaskIdentity",
+        "tests/test_model_adapter.py::Descriptors",
+        "tests/test_model_adapter.py::ModelResults",
+        "tests/test_model_adapter.py::TheBaseAdapter",
+        "tests/test_recheck_engine.py::ProviderIndependence",
+        "tests/test_recheck_stage.py::ProviderIndependenceThroughTheStage"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/model_adapter.py",
+          "symbols": [
+            "check_eligibility",
+            "Ineligibility"
+          ]
+        },
+        {
+          "file": "core/model_task.py",
+          "symbols": [
+            "effective_capabilities",
+            "boundary_rank"
+          ]
+        },
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "RecheckPolicy"
+          ]
+        }
+      ],
+      "capability": "Elegibilidade do adaptador por capacidade e fronteira de dados, antes de executar",
+      "generic_invariant": "Dado sensível é uma decisão de política tomada ANTES de processar. Um adaptador sem a capacidade exigida, cuja fronteira de dados excede a permitida, ou que enviaria evidência sensível ou não conferida a um terceiro, é recusado sem ser chamado e sem que a evidência seja lida.",
+      "id": "EX3-09",
+      "rejected_coupling": [
+        "privacidade específica de tela e razão social sistêmica do acervo",
+        "classificação de dado pessoal por tipo de campo de formulário"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "PERSONAL_PRIVACY",
+          "derive"
+        ]
+      },
+      "tests": [
+        "tests/test_model_adapter.py::Eligibility",
+        "tests/test_recheck_engine.py::CapabilityAndPolicyGates",
+        "tests/test_recheck_stage.py::TechnicalFailureAndRetry"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/recheck_stage.py",
+          "symbols": [
+            "AIRecheckStage",
+            "input_locator",
+            "upstream_locator",
+            "PARAMETER_KEY"
+          ]
+        }
+      ],
+      "capability": "AI_RECHECK como tratador de estágio do orquestrador, com o adaptador na identidade do checkpoint",
+      "generic_invariant": "O recheck é um estágio comum: carrega o pedido, confere a integridade da evidência pelo contexto do estágio, chama o executor, grava o resultado de forma atômica e deixa o checkpoint ao orquestrador. Trocar de adaptador ou de política invalida o recheck já concluído.",
+      "id": "EX3-10",
+      "rejected_coupling": [
+        "máquina de estado de lote por tela com campo ai_recheck dentro do registro da tela",
+        "um segundo orquestrador paralelo ao motor de estágios"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_review",
+          "op_requeue"
+        ]
+      },
+      "tests": [
+        "tests/test_recheck_stage.py::CaseAResolved",
+        "tests/test_recheck_stage.py::CheckpointResumeAndInvalidation",
+        "tests/test_recheck_stage.py::EvidenceDisciplineThroughTheStage",
+        "tests/test_recheck_stage.py::ASecondSyntheticWorkflow"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/recheck_engine.py",
+          "symbols": [
+            "run_recheck"
+          ]
+        },
+        {
+          "file": "core/model_adapter.py",
+          "symbols": [
+            "config_fingerprint",
+            "ModelIdentity"
+          ]
+        },
+        {
+          "file": "core/ai_recheck.py",
+          "symbols": [
+            "assemble_result"
+          ]
+        }
+      ],
+      "capability": "Trilha de auditoria: identidade do pedido, do adaptador, do modelo, da resposta e da evidência, sem prometer reprodutibilidade falsa",
+      "generic_invariant": "Mesma entrada, mesmo resultado. A proveniência registra o pedido, o adaptador, o modelo, a impressão digital da configuração, o hash da resposta e o snapshot da evidência. A reprodutibilidade só é afirmada para um adaptador que se declara determinístico.",
+      "id": "EX3-11",
+      "rejected_coupling": [
+        "data de geração com valor padrão fixo no código",
+        "carimbo de tempo dentro do artefato derivado"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "HISTORICAL_ACCIDENT"
+      ],
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive",
+          "build_report"
+        ]
+      },
+      "tests": [
+        "tests/test_recheck_engine.py::ResolvedRecheck",
+        "tests/test_recheck_engine.py::UsageAndDeterminism",
+        "tests/test_recheck_stage.py::CheckpointResumeAndInvalidation"
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "planned_destination": "capacidade genérica de revisão humana: portal, pergunta, ingestão da resposta e promoção a VALIDATED por pessoa nomeada",
+      "reason": "AI_RECHECK só entrega um candidato (human_review_candidate); como perguntar e como registrar a resposta é outra capacidade, com o seu próprio contrato.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "requires_named_person",
+          "queue"
+        ]
+      }
+    },
+    {
+      "planned_destination": "adaptadores reais de modelo em adapters/llm/<perfil>/ (provedor remoto e modelo local)",
+      "reason": "Esta extração entrega o contrato portátil primeiro; SDK, rede e credencial pertencem à camada de provedor e a um marco próprio.",
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_recheck"
+        ]
+      }
+    },
+    {
+      "planned_destination": "extração do roteamento de revisão: decidir que um item precisa de AI_RECHECK a partir dos sinais do agente",
+      "reason": "A árvore de classes depende dos sinais de análise de cada software; o executor aqui recebe o pedido já montado.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive",
+          "CLASSES"
+        ]
+      }
+    },
+    {
+      "planned_destination": "segunda passada de recheck com evidência nova (round maior que 1)",
+      "reason": "O campo round e o limite max_rounds existem, mas exigir que a nova passada traga evidência diferente da já lida é uma regra de política ainda não extraída.",
+      "source_reference": {
+        "file": "tools/batch/k4_2_review.py",
+        "symbols": [
+          "sec5_6"
+        ]
+      }
+    },
+    {
+      "planned_destination": "geração de pedidos em lote a partir de uma fila de dúvidas",
+      "reason": "A fila preservada com executed False depende dos analisadores de cada software, que ainda não existem no agente.",
+      "source_reference": {
+        "file": "tools/batch/k4_2_correction.py",
+        "symbols": [
+          "ai_recheck_queue"
+        ]
+      }
+    },
+    {
+      "planned_destination": "persistência do backlog de fontes e dos candidatos de revisão em schema próprio",
+      "reason": "source_gap_entry e human_review_candidate são visões derivadas em memória; gravá-las exige o contrato da capacidade de revisão humana.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "queue",
+          "build_report"
+        ]
+      }
+    }
+  ],
+  "extraction": "EXTRACTION_003",
+  "not_extracted": [
+    "portal ou fluxo de revisão humana",
+    "ingestão de resposta humana",
+    "implementação do adaptador de DokuWiki",
+    "observador de mudanças (daemon)",
+    "etapa K4.3 do SYSCOM",
+    "analisador de telas",
+    "engenharia reversa de banco",
+    "interface web",
+    "adaptador real de provedor de modelo",
+    "chamada de API de modelo",
+    "armazenamento de credencial"
+  ],
+  "reference": {
+    "access": "read-only",
+    "commit": "4c652a38c37d1c492837e82a0cef06de59de2a6c",
+    "sources": [
+      {
+        "git_blob": "f1457ba2ffb9dc838d0e790acbb2397c2ebe8186",
+        "path": "tools/batch/batch_run.py"
+      },
+      {
+        "git_blob": "f89f1571a33afdd7c62c0015b6e351c0ba09abb7",
+        "path": "tools/batch/k4_2_correction.py"
+      },
+      {
+        "git_blob": "bb2144f2c3b683c41b4fa5dec0ba18f4088a00db",
+        "path": "tools/batch/k4_2_review.py"
+      },
+      {
+        "git_blob": "054cc76a81d78746673ed206e7f482201fe74118",
+        "path": "tools/review/derive_review_class.py"
+      }
+    ],
+    "working_tree": "o workspace de referência tinha alterações locais não relacionadas antes e depois desta extração; os quatro arquivos estudados eram idênticos ao commit"
+  },
+  "rejected": [
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Itens críticos, rótulos e flags de revisão falam de identidade, abas, campos e colunas de tela; o pedido genérico recebe as afirmações em dúvida como dados.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "CRITICAL_AUDIT_ITEMS",
+          "AUDIT_LABEL",
+          "FLAG_ORDER",
+          "HUMAN_CONTRADICTION_KINDS"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Raízes congeladas, pasta de telas padrão e nomes de política e de schema de triagem são layout e contratos do projeto de origem.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "FROZEN_ROOTS",
+          "DEFAULT_SCREENS",
+          "POLICY",
+          "TRIAGE_SCHEMA"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "A data de geração tem valor padrão fixo no código; o artefato novo não grava tempo.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "main"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "Reescreve o arquivo de validação de entrada no lugar; o agente nunca reescreve uma entrada.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "write_validation"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "O resultado do recheck entra por argumentos de linha de comando digitados por um operador; o resultado novo é produzido e validado pelo executor.",
+      "source_reference": {
+        "file": "tools/batch/batch_run.py",
+        "symbols": [
+          "op_recheck"
+        ]
+      }
+    },
+    {
+      "classification": "DATASET_SPECIFIC",
+      "reason": "A política SF6 nasceu de duas telas concretas; só a regra geral (recheck exige evidência que possa conter a resposta) foi extraída.",
+      "source_reference": {
+        "file": "tools/batch/k4_2_review.py",
+        "symbols": [
+          "sec5_6"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "A fila com executed False agrupa por família de perguntas de tela; um pedido é um artefato com identidade, executado por um estágio.",
+      "source_reference": {
+        "file": "tools/batch/k4_2_correction.py",
+        "symbols": [
+          "ai_recheck_queue"
+        ]
+      }
+    }
+  ],
+  "title": "Execução genérica de AI_RECHECK e fronteira do adaptador de modelo"
+}

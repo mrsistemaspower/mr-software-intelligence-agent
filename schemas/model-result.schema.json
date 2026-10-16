@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:model-result:1",
+  "title": "ModelResult",
+  "description": "Resposta de um adaptador de modelo a uma tarefa: ou a saída estruturada (output) ou uma falha técnica (failure), nunca as duas. Registra quem respondeu (adapter_id, model_id e impressão digital da configuração, quando conhecidos) e o uso, quando o adaptador o conhece; contagem de tokens nunca é obrigatória. A saída só é aceita depois de validada contra o contrato da tarefa; este schema descreve apenas o envelope. Também define adapterIdentity, o bloco de proveniência do adaptador reutilizado pelo resultado de AI_RECHECK.",
+  "type": "object",
+  "required": ["kind", "task_id", "ok", "model"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "model-result" },
+    "task_id": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/artifactId" },
+    "ok": { "type": "boolean" },
+    "model": { "$ref": "#/$defs/modelIdentity" },
+    "output": { "type": "object" },
+    "failure": { "$ref": "#/$defs/failure" },
+    "usage": { "$ref": "#/$defs/usage" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "ok": { "const": true } }, "required": ["ok"] },
+      "then": { "required": ["output"], "not": { "required": ["failure"] } }
+    },
+    {
+      "if": { "properties": { "ok": { "const": false } }, "required": ["ok"] },
+      "then": { "required": ["failure"], "not": { "required": ["output"] } }
+    }
+  ],
+  "$defs": {
+    "modelIdentity": {
+      "type": "object",
+      "required": ["adapter_id"],
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" },
+        "model_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,127}$" },
+        "config_fingerprint": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "adapterIdentity": {
+      "description": "Descritor portátil do adaptador. profile_id, quando existe, aponta para um perfil em adapters/llm/.",
+      "type": "object",
+      "required": ["adapter_id", "adapter_version", "capabilities", "data_boundary", "deterministic"],
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" },
+        "adapter_version": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/version" },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/capability" }
+        },
+        "data_boundary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/boundary" },
+        "deterministic": { "type": "boolean" },
+        "model_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,127}$" },
+        "config_fingerprint": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "profile_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "required": ["kind", "message", "retryable"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["TIMEOUT", "UNAVAILABLE", "REFUSED", "ERROR"] },
+        "message": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "retryable": { "type": "boolean" }
+      }
+    },
+    "usage": {
+      "description": "Uso conhecido pelo adaptador. Opcional e nunca exigido.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

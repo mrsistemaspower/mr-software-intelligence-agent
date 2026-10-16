@@ -85,7 +85,7 @@ O SYSCOM é o **caso de treino e validação número 1**. O produto não é um a
 
 ## Visão de futuro
 
-- Continuar a extração, contra os contratos desta fundação, dos motores comprovados no SYSCOM (hash, JSON canônico, escrita atômica, snapshot de conhecimento e a base de orquestração com checkpoints e retomada já foram extraídos): roteamento de revisão, executor de `AI_RECHECK`, ingestão de respostas humanas.
+- Continuar a extração, contra os contratos desta fundação, dos motores comprovados no SYSCOM (hash, JSON canônico, escrita atômica, snapshot de conhecimento, a base de orquestração com checkpoints e retomada e o executor de `AI_RECHECK` já foram extraídos): roteamento de revisão, ingestão de respostas humanas.
 - Aplicar o agente a outros ERPs da MR (por exemplo, o ERP Dolphins), a sistemas legados sem documentação e a softwares de terceiros, quando permitido.
 - Implementar os adaptadores de fonte hoje descritos como contrato.
 - Inteligência de mudança automática entre versões.
@@ -100,7 +100,9 @@ Fora do escopo deste marco: chat, interface web, banco vetorial, servidor de RAG
 
 **Agent Extraction 2.** O núcleo ganhou a base de orquestração determinística, genérica e sem conhecimento de software: grafo de estágios configurável (validado antes de executar), máquina de estados do estágio, checkpoints, retomada segura com invalidação só dos dependentes, recuperação de estágio interrompido, estado gravado de forma atômica, proteção de raízes de fonte (`READ_ONLY`, `FROZEN`, `MUTABLE_OUTPUT`) com detecção de mutação, e um adaptador opcional de estado do Git. Os estágios rodam tratadores fornecidos por quem executa; nada chama modelo de linguagem. Ver [`docs/AGENT_EXTRACTION_2.md`](docs/AGENT_EXTRACTION_2.md) e a rastreabilidade em [`docs/extraction/EXTRACTION_002.json`](docs/extraction/EXTRACTION_002.json).
 
-Ainda não implementado: os adaptadores de fonte, a extração dos demais motores do SYSCOM (roteamento de revisão, executor de `AI_RECHECK`, ingestão de respostas humanas) e qualquer execução autônoma com modelo de linguagem.
+**Agent Extraction 3.** O núcleo ganhou o executor genérico de `AI_RECHECK` e a fronteira do adaptador de modelo. `AI_RECHECK` é uma segunda análise focada, por IA, de evidência JÁ disponível: o agente decide o que rechecar, com que evidência autorizada, que forma a resposta tem, se ela é aceitável e para onde segue (reuso, lacuna de fonte, candidato a decisão humana, contingência ou falha); só um adaptador de modelo substituível fala com um modelo. A resposta nunca é confiada (validação determinística), todo achado é `INFERRED` (nenhuma segunda passada cria validação humana), um adaptador inelegível por capacidade ou por fronteira de dados não é chamado, e o recheck é um estágio comum do orquestrador, com o adaptador na identidade do checkpoint. Não há SDK, rede nem credencial: a suíte usa adaptadores sintéticos. Ver [`docs/AGENT_EXTRACTION_3.md`](docs/AGENT_EXTRACTION_3.md) e a rastreabilidade em [`docs/extraction/EXTRACTION_003.json`](docs/extraction/EXTRACTION_003.json).
+
+Ainda não implementado: os adaptadores de fonte, a extração dos demais motores do SYSCOM (roteamento de revisão, ingestão de respostas humanas), qualquer adaptador real de provedor de modelo e qualquer execução autônoma com modelo de linguagem de verdade.
 
 ## Como usar e verificar
 

@@ -32,6 +32,15 @@ Todos seguem JSON Schema 2020-12 e têm `$id` no formato `urn:mr-software-intell
 | `run-state` | RunState | andamento de uma execução: identidade determinística, status, estado de cada estágio, proteção das fontes e violações. Ver `core/run_state.py` |
 | `run-config` | RunConfig | configuração portátil e com hash de uma execução: grafo, raízes por nome com classe de proteção, entradas nomeadas e parâmetros por estágio. Ver `core/run_config.py` |
 
+## Modelo e AI_RECHECK (contratos entre o agente e um modelo)
+
+| Schema | Registro | Ideia central |
+|---|---|---|
+| `model-task` | ModelTask | pedido estruturado e neutro de provedor: evidência autorizada presa por hash, único contexto permitido, contrato de saída, capacidades e fronteira de dados exigidas. Define os blocos compartilhados. Ver `core/model_task.py` |
+| `model-result` | ModelResult | resposta de um adaptador: saída estruturada OU falha técnica, nunca as duas; quem respondeu; uso opcional. Ver `core/model_adapter.py` |
+| `ai-recheck-request` | AIRecheckRequest | segunda análise de evidência existente: assunto genérico, ambiguidade, afirmações, evidência autorizada, interpretação existente. Ver `core/ai_recheck.py` |
+| `ai-recheck-result` | AIRecheckResult | resultado aceito (`RESOLVED`, `SOURCE_GAP`, `HUMAN_DECISION`, `INCONCLUSIVE`, `FAILED`) com rota e proveniência; todo achado é `INFERRED`. Define também `modelOutput`, a resposta bruta exigida do modelo |
+
 ## Contratos de configuração (como o agente se organiza)
 
 | Schema | Valida |
