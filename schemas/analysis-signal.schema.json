@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:analysis-signal:1",
+  "title": "AnalysisSignal",
+  "description": "Uma observação de uma análise que pode mudar a rota de revisão. Genérica: o assunto (subject) pode ser código, documentação, esquema de banco, rastro de execução, configuração, API, fluxo, regra, nota de versão, captura de tela ou qualquer outro; nada aqui pressupõe tela, botão, aba ou grid. Criticidade, confiança, impacto e disponibilidade da evidência são eixos separados: criticidade diz o quanto o ponto importa; confiança é só registrada (baixa confiança não é revisão humana, alta confiança não é segurança); impact_class diz o que a afirmação faz se estiver errada e pode ser derivada pela política dos effects; a existência de evidence diz se há o que reler. A evidência é referenciada por ref e hash, nunca embutida, e o sinal não carrega caminho local. A família é aberta (a política define o que cada uma pede); qualifier a refina. signal_id deriva do conteúdo e é conferido ao carregar (core/analysis_signal.py). Este schema também define os blocos compartilhados pelos demais contratos de revisão.",
+  "type": "object",
+  "required": ["kind", "signal_id", "family", "subject", "target_ref", "summary", "criticality"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "analysis-signal" },
+    "signal_id": { "type": "string", "pattern": "^art:analysis\\.signal:sha256:[0-9a-f]{64}$" },
+    "family": { "$ref": "#/$defs/family" },
+    "qualifier": { "$ref": "#/$defs/qualifier" },
+    "subject": { "$ref": "#/$defs/subject" },
+    "target_ref": {
+      "description": "O ponto em dúvida dentro do assunto (uma afirmação, relação, item). Quando o sinal é sobre o assunto inteiro, repete a ref do assunto.",
+      "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref"
+    },
+    "summary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+    "criticality": { "$ref": "#/$defs/criticality" },
+    "confidence": { "$ref": "#/$defs/confidenceBand" },
+    "impact_class": { "$ref": "#/$defs/impactClass" },
+    "effects": {
+      "description": "Efeitos genéricos que a afirmação atribui ao assunto. A política deriva deles a classe de impacto; efeito desconhecido não é tratado como inofensivo.",
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/effect" }
+    },
+    "evidence": {
+      "description": "A evidência que EXISTE e foi consultada. Sem ela, uma dúvida de leitura não tem o que reler e vira lacuna de fonte.",
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/evidenceBinding" }
+    },
+    "source_need": { "$ref": "#/$defs/sourceNeed" },
+    "positions": {
+      "description": "As posições de um conflito, quando o sinal é de conflito.",
+      "type": "array",
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/position" }
+    },
+    "boundary_limit": {
+      "description": "Até onde a evidência deste assunto pode ir (restrição de privacidade, segurança ou provedor). A mais estrita entre os sinais limita qualquer releitura por modelo.",
+      "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/boundary"
+    },
+    "recommended_role": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" }
+  },
+  "$defs": {
+    "family": {
+      "description": "Família do sinal. Aberta: a política padrão conhece LOW_CONFIDENCE, AMBIGUOUS_INTERPRETATION, SELF_AUDIT_REVIEW, MISSING_EVIDENCE, TRUNCATED_EVIDENCE, UNKNOWN_RELATION, STRUCTURE_ONLY, CONFLICTING_EVIDENCE, POLICY_CONFLICT, UNVERIFIED_HIGH_IMPACT_CLAIM e PRIVACY_OR_SECURITY_CONCERN; estender é acrescentar uma regra à política.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+    },
+    "qualifier": {
+      "description": "Refina a família sem criar outra (por exemplo o tipo de conflito, ou o escopo de uma preocupação).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "criticality": {
+      "enum": ["low", "medium", "high", "critical"]
+    },
+    "confidenceBand": {
+      "description": "Faixa de confiança da análise na afirmação. Registrada, nunca decisiva.",
+      "enum": ["low", "medium", "high"]
+    },
+    "impactClass": {
+      "description": "Classe de impacto. Aberta: a política declara as classes e a ordem de gravidade (por exemplo informational, operational, data_integrity, financial, fiscal, security, external_transmission, irreversible_action).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "effect": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "subject": {
+      "description": "O artefato sob revisão. kind é aberto (por exemplo source-code, database-schema, runtime-trace, api, configuration, document).",
+      "type": "object",
+      "required": ["ref", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "kind": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" },
+        "title": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+      }
+    },
+    "evidenceBinding": {
+      "description": "Referência a uma evidência e o hash do conteúdo consultado. Nunca o conteúdo.",
+      "type": "object",
+      "required": ["ref", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "sha256": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/sha256" }
+      }
+    },
+    "sourceType": {
+      "description": "Tipo GENÉRICO de fonte a obter. Nomes de adaptadores específicos pertencem aos adaptadores. Mapeia para common#/$defs/sourceKind em core/analysis_signal.py (database -> database-schema; external-system ainda não tem tipo registrado).",
+      "enum": ["documentation", "runtime", "database", "source-code", "screenshot", "filesystem", "release-notes", "human-expert", "external-system"]
+    },
+    "sourceNeed": {
+      "description": "O que falta, por que importa e que tipos de fonte poderiam trazê-lo.",
+      "type": "object",
+      "required": ["missing_information", "why_needed", "recommended_source_types"],
+      "additionalProperties": false,
+      "properties": {
+        "missing_information": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "why_needed": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "recommended_source_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceType" }
+        }
+      }
+    },
+    "position": {
+      "description": "Uma das posições de um conflito: a afirmação (ref), o resumo e, se souber, de onde vem (por exemplo observed, human).",
+      "type": "object",
+      "required": ["ref", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "summary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "origin": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" }
+      }
+    },
+    "impact": {
+      "description": "O impacto de um ponto: a classe e a criticidade EFETIVA (a maior entre a declarada e o piso da classe).",
+      "type": "object",
+      "required": ["impact_class", "criticality"],
+      "additionalProperties": false,
+      "properties": {
+        "impact_class": { "$ref": "#/$defs/impactClass" },
+        "criticality": { "$ref": "#/$defs/criticality" }
+      }
+    }
+  }
+}

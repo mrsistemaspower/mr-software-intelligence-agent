@@ -73,7 +73,7 @@
       }
     },
     "failure": {
-      "description": "Falha registrada como dados simples: estágio, categoria, mensagem sem caminho local, tentativa e estado do checkpoint.",
+      "description": "Falha registrada como dados simples: estágio, categoria, mensagem sem caminho local, tentativa e estado do checkpoint. retryable só aparece quando é false (falha determinística: a retomada não gasta outra tentativa); o padrão, repetível, não é gravado.",
       "type": "object",
       "required": ["stage_id", "category", "message", "attempt", "checkpoint_state"],
       "additionalProperties": false,
@@ -82,7 +82,8 @@
         "category": { "enum": ["HANDLER_ERROR", "INPUT_UNAVAILABLE", "INPUT_MUTATED", "OUTPUT_CONTRACT", "INTERRUPTED", "SOURCE_MUTATION"] },
         "message": { "type": "string", "minLength": 1, "maxLength": 400 },
         "attempt": { "type": "integer", "minimum": 0 },
-        "checkpoint_state": { "enum": ["ABSENT", "VALID", "INVALID"] }
+        "checkpoint_state": { "enum": ["ABSENT", "VALID", "INVALID"] },
+        "retryable": { "const": false }
       }
     },
     "cause": {

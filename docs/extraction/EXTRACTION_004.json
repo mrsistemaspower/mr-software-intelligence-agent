@@ -1,0 +1,1071 @@
+{
+  "base_commit": "39924005b8ede7068e9940d6efb34af526ae84b6",
+  "capabilities": [
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "ReviewRouter",
+            "ReviewDecision",
+            "ReviewSubject"
+          ]
+        },
+        {
+          "file": "core/review_policy.py",
+          "symbols": [
+            "ReviewPolicy",
+            "load_policy",
+            "default_policy"
+          ]
+        },
+        {
+          "file": "schemas/review-decision.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Classe de revisão derivada por código, como função pura dos sinais, e não atribuída por opinião",
+      "generic_invariant": "A classe de um assunto é calculada por uma função pura e determinística a partir de sinais e de uma política: mesmas entradas e mesma política, mesma decisão, sem rede, arquivo, modelo, Git ou relógio.",
+      "id": "EX4-01",
+      "rejected_coupling": [
+        "entradas fixas por pasta de tela (pacote de conhecimento, validação, camada humana, estado de lote)",
+        "triagem escrita num arquivo de relatório com data de geração padrão",
+        "gravação da classe dentro do arquivo de validação de entrada"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "docs/HUMAN_REVIEW_POLICY.md",
+            "symbols": [
+              "1. As cinco classes",
+              "3. Árvore de decisão"
+            ]
+          }
+        ],
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::EveryClassHasItsOwnTrigger",
+        "tests/test_review_routing.py::DecisionIdentityIsDeterministicAndPolicyAware"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/analysis_signal.py",
+          "symbols": [
+            "REVIEW_CLASSES",
+            "ACTIONS"
+          ]
+        },
+        {
+          "file": "schemas/review-decision.schema.json",
+          "symbols": []
+        },
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "next_action_for",
+            "NEXT_ACTIONS"
+          ]
+        }
+      ],
+      "capability": "As cinco classes de revisão e quem resolve cada uma",
+      "generic_invariant": "AUTO_PASS (ninguém), SAMPLE_QA (amostra), AI_RECHECK (IA, sobre a evidência existente), SOURCE_GAP (backlog de fonte) e HUMAN_DECISION (pessoa nomeada). Só uma delas gera trabalho obrigatório de pessoa.",
+      "id": "EX4-02",
+      "rejected_coupling": [
+        "fila textual por classe ('volta para a IA', 'SOURCE_BACKLOG: captura, D8 ou D9')",
+        "enum antigo de três classes e a tabela de compatibilidade"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "CLASSES"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "1. As cinco classes"
+        ]
+      },
+      "tests": [
+        "tests/test_analysis_signal.py::VocabularyMatchesTheSchemas",
+        "tests/test_review_routing.py::EveryClassHasItsOwnTrigger"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "_tier",
+            "_CLASS_OF_TIER",
+            "ReviewRouter"
+          ]
+        }
+      ],
+      "capability": "Ordem de precedência das classes, com a lacuna de fonte em duas posições",
+      "generic_invariant": "Decisão humana vence lacuna de fonte bloqueante, que vence releitura por IA, que vence lacuna não bloqueante, que vence amostragem de qualidade, que vence AUTO_PASS. A ordem é fixa no código: a política escolhe a ação de cada sinal, não a ordem entre as classes.",
+      "id": "EX4-03",
+      "rejected_coupling": [
+        "gatilhos por tipo de componente de tela dentro de cada posição da árvore",
+        "posição da árvore ligada a 'item crítico' como lista de componentes"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "docs/HUMAN_REVIEW_POLICY.md",
+            "symbols": [
+              "3. Árvore de decisão"
+            ]
+          }
+        ],
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::PrecedenceOrderAndSecondarySignals"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/analysis_signal.py",
+          "symbols": [
+            "AnalysisSignal",
+            "EvidenceBinding",
+            "SourceNeed",
+            "Position",
+            "BASE_FAMILIES"
+          ]
+        },
+        {
+          "file": "schemas/analysis-signal.schema.json",
+          "symbols": []
+        },
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Taxonomia mínima e extensível de sinais, em vez de 28 flags",
+      "generic_invariant": "Um sinal é família aberta + qualificador + assunto + ponto + criticidade + evidência por hash, sem conceito de tela. Onze famílias cobrem os casos; estender é acrescentar uma regra à política, sem tocar o código.",
+      "id": "EX4-04",
+      "rejected_coupling": [
+        "28 flags secundárias de revisão específicas de tela (aba cortada, grid principal, combobox fechado, lookup sem destino)",
+        "vocabulário de item crítico: identidade, caminho de menu, campos, botões, abas, colunas",
+        "motivos em texto montados por gatilho de tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "docs/HUMAN_REVIEW_POLICY.md",
+            "symbols": [
+              "3.1 secondary_flags: vocabulário fechado"
+            ]
+          }
+        ],
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "FLAG_ORDER",
+          "derive"
+        ]
+      },
+      "tests": [
+        "tests/test_analysis_signal.py::TheSignalIsAPortableContract",
+        "tests/test_analysis_signal.py::TheTaxonomyIsCoherentAndMinimal",
+        "tests/test_review_routing.py::TheTaxonomyAndPolicyExtendWithoutChangingCode"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/analysis_signal.py",
+          "symbols": [
+            "CRITICALITIES",
+            "CONFIDENCE_BANDS",
+            "criticality_rank",
+            "max_criticality"
+          ]
+        },
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "_evaluate"
+          ]
+        }
+      ],
+      "capability": "Criticidade separada de confiança: baixa confiança não é revisão humana",
+      "generic_invariant": "Criticidade (o quanto o ponto importa) e confiança (a certeza da análise) são eixos independentes. A confiança é registrada e nunca decide; a criticidade efetiva escolhe a ação. Baixa confiança não é revisão humana e alta confiança não é segurança.",
+      "id": "EX4-05",
+      "rejected_coupling": [
+        "definição de item crítico por lista de componentes de tela",
+        "faixa low/medium/high gravada em campos de componente de tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "derive"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "2. Item crítico",
+          "4. confidence: low não é revisão humana automática"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::CriticalityAndConfidenceAreSeparateAxes",
+        "tests/test_analysis_signal.py::CriticalityAndConfidenceAreSeparateAxes"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "_apply_recheck_budget",
+            "_gap_requirement",
+            "_evaluate"
+          ]
+        }
+      ],
+      "capability": "Disponibilidade de evidência: existe e é incerta, não existe, ou existe e se contradiz",
+      "generic_invariant": "Evidência existe e a leitura é incerta: candidata a AI_RECHECK. A evidência necessária não existe: SOURCE_GAP. Existe e se contradiz de modo que a IA não decide: HUMAN_DECISION. Um pedido de releitura sem evidência vira lacuna de fonte, e uma lacuna nunca vira decisão humana por si.",
+      "id": "EX4-06",
+      "rejected_coupling": [
+        "categorias SOURCE_COVERAGE_ISSUE, AI_EXTRACTION_ISSUE, UNKNOWN_DOMAIN, UNKNOWN_TARGET, STRUCTURE_ONLY ligadas a abas, combobox e lookups de tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "SOURCE_LIMIT_CODES",
+              "derive"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "5. Cobertura de fonte não é falha de IA"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::EvidenceAvailabilityIsTheCentralInvariant"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "SourceGapRequirement"
+          ]
+        },
+        {
+          "file": "core/analysis_signal.py",
+          "symbols": [
+            "SOURCE_TYPES",
+            "SourceNeed",
+            "source_type_for_kind",
+            "source_kind_for_type"
+          ]
+        },
+        {
+          "file": "schemas/source-gap-requirement.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Requisito de fonte estruturado para o backlog de aquisição",
+      "generic_invariant": "Uma lacuna de fonte diz o que falta, por que importa, que tipos GENÉRICOS de fonte poderiam trazer, o impacto e se bloqueia. A identidade não depende da decisão que a gerou, então o backlog deduplica o mesmo pedido.",
+      "id": "EX4-07",
+      "rejected_coupling": [
+        "destinos de backlog com nomes de produto e de rodada (captura, D8, D9, Firebird, DokuWiki)",
+        "flags open_questions_runtime e open_questions_firebird"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "RUNTIME_SOURCES",
+              "FIREBIRD_SOURCES",
+              "derive"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "8. Ordem de trabalho em escala"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::ArtifactsForTheDestinations",
+        "tests/test_analysis_signal.py::SourceTypesAreGenericAndMapToRegisteredKinds"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "HumanDecisionCandidate",
+            "_candidates"
+          ]
+        },
+        {
+          "file": "core/review_policy.py",
+          "symbols": [
+            "ReviewPolicy"
+          ]
+        },
+        {
+          "file": "schemas/human-decision-candidate.schema.json",
+          "symbols": []
+        },
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Candidato a decisão humana como artefato de fronteira, com o que não se pode presumir",
+      "generic_invariant": "Uma decisão humana só se pede com a pergunta, o motivo de a IA não decidir com segurança, a evidência disponível, as posições em conflito, o impacto, o papel recomendado (quando conhecido) e as suposições proibidas. É só a fronteira: não pergunta nem responde por ninguém.",
+      "id": "EX4-08",
+      "rejected_coupling": [
+        "pergunta montada com identificadores de tela e de quarentena do projeto de origem",
+        "'100% revisadas por pessoa nomeada' como regra de fila do projeto"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "docs/HUMAN_REVIEW_POLICY.md",
+            "symbols": [
+              "8. Ordem de trabalho em escala"
+            ]
+          }
+        ],
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::ArtifactsForTheDestinations",
+        "tests/test_review_policy.py::StrictValidationRefusesWholePolicies"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        },
+        {
+          "file": "core/review_policy.py",
+          "symbols": [
+            "ReviewPolicy",
+            "policy_problems"
+          ]
+        },
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "_evaluate"
+          ]
+        }
+      ],
+      "capability": "Contradição genérica: nem toda contradição exige pessoa",
+      "generic_invariant": "Há casos distintos: tensão compatível (observa), ambiguidade resolvível (releitura), conflito direto (pessoa), pessoa contra observado (pessoa) e política dura (pessoa). O tratamento é uma regra da política por qualificador e criticidade.",
+      "id": "EX4-09",
+      "rejected_coupling": [
+        "tipos de contradição de padrão com nomes do projeto de origem (unanchored_in_evidence, semantic_overlap, blocked_by_grouping)",
+        "quarentena do enrichment e agrupamento de capturas como gatilhos"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "docs/HUMAN_REVIEW_POLICY.md",
+            "symbols": [
+              "3. Árvore de decisão",
+              "7. Padrão de interação e nível de evidência"
+            ]
+          }
+        ],
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "HUMAN_CONTRADICTION_KINDS",
+          "derive"
+        ]
+      },
+      "tests": [
+        "tests/test_review_policy.py::TheDefaultPolicyIsReadableData",
+        "tests/test_review_routing.py::EvidenceAvailabilityIsTheCentralInvariant"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        },
+        {
+          "file": "core/analysis_signal.py",
+          "symbols": [
+            "AnalysisSignal"
+          ]
+        },
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "_recheck_plan",
+            "_strictest_boundary"
+          ]
+        },
+        {
+          "file": "core/review_recheck.py",
+          "symbols": [
+            "build_recheck_request"
+          ]
+        }
+      ],
+      "capability": "Privacidade sistêmica tratada uma vez, privacidade específica do assunto como gatilho, e fronteira de dados que só aperta",
+      "generic_invariant": "Uma preocupação sistêmica já tratada no acervo só é observada; uma preocupação específica do assunto exige pessoa. Um limite de fronteira em qualquer sinal restringe qualquer releitura por modelo e só aperta: nunca afrouxa o padrão da política nem o teto do ambiente.",
+      "id": "EX4-10",
+      "rejected_coupling": [
+        "razão social de uma empresa real na barra de título como caso sistêmico",
+        "classes de privacidade por campo (personal_data, customer_data, company_data, fiscal_data)"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "PERSONAL_PRIVACY",
+              "COMPANY_PRIVACY",
+              "derive"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "6. Privacidade sistêmica"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::PrivacySecurityAndProviderRestrictions",
+        "tests/test_review_recheck.py::TheDecisionBecomesTheExecutorsRequest"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/analysis_signal.py",
+          "symbols": [
+            "ClaimAssessment",
+            "check_effect",
+            "check_impact_class"
+          ]
+        },
+        {
+          "file": "core/review_policy.py",
+          "symbols": [
+            "ReviewPolicy",
+            "policy_problems"
+          ]
+        },
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "ReviewRouter",
+            "_evaluate"
+          ]
+        },
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Alto impacto derivado de efeitos genéricos, em vez de marcado à mão",
+      "generic_invariant": "O adaptador de domínio declara efeitos genéricos e o status da afirmação; a política mapeia efeitos para classes de impacto, dá um piso de criticidade a cada classe e decide que afirmações não verificadas de alto impacto geram um sinal. Efeito desconhecido não é inofensivo. A rota final é a que a política configurar.",
+      "id": "EX4-11",
+      "rejected_coupling": [
+        "classes de impacto específicas do projeto de origem (fiscal, financeiro, exclusão, transmissão) como gatilho curado à mão",
+        "o gatilho 'ainda não derivável por código' registrado como pendência de automação"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "3. Árvore de decisão"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::HighImpactClaimsInfluenceRoutingByPolicy",
+        "tests/test_analysis_signal.py::ClaimAssessmentDeclaresEffectsNotImpactDecisions",
+        "tests/test_review_policy.py::RulesAndImpactBehaviour"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "RecheckRecord",
+            "_apply_recheck_budget"
+          ]
+        },
+        {
+          "file": "core/review_recheck.py",
+          "symbols": [
+            "build_recheck_request",
+            "follow_up",
+            "records_from_result",
+            "executor_policy",
+            "plan_problems",
+            "ReviewFollowUp"
+          ]
+        },
+        {
+          "file": "schemas/review-decision.schema.json",
+          "symbols": []
+        },
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        }
+      ],
+      "capability": "AI_RECHECK antes da pessoa; releitura esgotada num ponto crítico escala; o laço epistêmico é limitado",
+      "generic_invariant": "A releitura por IA precede a pessoa quando a evidência existente pode resolver. Um desfecho definitivo (resolvido, lacuna, decisão humana) encerra o laço; um inconclusivo escala pela política depois da última rodada e nunca volta a AI_RECHECK em laço. Cada alvo tem um orçamento de rodadas por evidência; falha técnica não gasta o orçamento.",
+      "id": "EX4-12",
+      "rejected_coupling": [
+        "'AI_RECHECK já executado' como lista de itens críticos não resolvidos guardada num estado de lote por tela",
+        "status 'completed' escrito à mão"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "derive"
+            ]
+          },
+          {
+            "file": "docs/HUMAN_REVIEW_POLICY.md",
+            "symbols": [
+              "8. Ordem de trabalho em escala"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "4. confidence: low não é revisão humana automática"
+        ]
+      },
+      "tests": [
+        "tests/test_review_recheck.py::EachVerdictRoutesTheDecisionAgain",
+        "tests/test_review_recheck.py::TheEpistemicLoopIsBounded",
+        "tests/test_review_recheck.py::ATechnicalFailureIsNotAVerdict",
+        "tests/test_review_recheck.py::TheStageOfExtraction3ConsumesTheHandoffUnchanged"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "sample_bucket",
+            "sampling_block",
+            "next_action_for"
+          ]
+        },
+        {
+          "file": "core/review_policy.py",
+          "symbols": [
+            "ReviewPolicy"
+          ]
+        },
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Amostragem de qualidade configurável e determinística",
+      "generic_invariant": "SAMPLE_QA e a auditoria de AUTO_PASS têm taxas configuráveis. O sorteio vem do hash da semente com a identidade da decisão: sem acaso e sem relógio. Ser sorteado nunca muda a classe. As taxas são configuração operacional, não resultado estatístico.",
+      "id": "EX4-13",
+      "rejected_coupling": [
+        "taxas fixas 20% e 5% como verdade do projeto de origem (ficam só como valor inicial da política padrão)",
+        "auditoria aleatória sem semente"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "DATASET_SPECIFIC"
+      ],
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "9. Amostragem: configuração operacional, não verdade científica"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::QualitySamplingIsDeterministic"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "VALIDATION_EFFECT",
+            "ReviewDecision"
+          ]
+        },
+        {
+          "file": "schemas/review-decision.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "A classe nunca promove conhecimento: AUTO_PASS não é VALIDATED",
+      "generic_invariant": "Rotear não promove nada. Toda decisão grava validation_effect NONE, conferido no schema e ao carregar; nenhum campo da decisão guarda um validador. AUTO_PASS significa que nada pede julgamento agora, não que o conhecimento esteja correto.",
+      "id": "EX4-14",
+      "rejected_coupling": [
+        "campo 'reviewed_by' nulo como convenção do projeto de origem",
+        "dependência de quem preenche o status de validação fora do contrato"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR"
+      ],
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "11. O que esta política não faz"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::AutoPassIsAQueueDecisionNotKnowledge",
+        "tests/test_review_routing.py::ATamperedDecisionIsNeverTrusted"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "ReviewDecision",
+            "_Eval"
+          ]
+        },
+        {
+          "file": "schemas/review-decision.schema.json",
+          "symbols": []
+        }
+      ],
+      "capability": "Sinais secundários e motivos estruturados preservam a observabilidade",
+      "generic_invariant": "Uma decisão tem uma classe primária e, ao lado, os sinais que não a definiram (AUTO_PASS com uma relação opcional desconhecida; SOURCE_GAP com baixa confiança). Os motivos primários são dados estruturados (regra, ação, criticidade efetiva), não frases.",
+      "id": "EX4-15",
+      "rejected_coupling": [
+        "review_class_reasons como lista de frases em português por gatilho",
+        "ordem canônica de flags igual ao enum de um schema de tela"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "FLAG_ORDER",
+              "derive"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "1. As cinco classes",
+          "3.1 secondary_flags: vocabulário fechado"
+        ]
+      },
+      "tests": [
+        "tests/test_review_routing.py::PrecedenceOrderAndSecondarySignals"
+      ]
+    },
+    {
+      "agent_destination": [
+        {
+          "file": "core/review_policy.py",
+          "symbols": [
+            "ReviewPolicy",
+            "policy_problems",
+            "load_policy",
+            "PARAMETER_KEY"
+          ]
+        },
+        {
+          "file": "policies/review-routing.policy.json",
+          "symbols": []
+        },
+        {
+          "file": "core/review_routing.py",
+          "symbols": [
+            "ReviewRouter"
+          ]
+        }
+      ],
+      "capability": "Versão da política gravada com a decisão e política como dado validado",
+      "generic_invariant": "Toda decisão grava a referência da política (id, versão e digest de todo o conteúdo), que entra na identidade da decisão: outra política, outra decisão, recomputada. A política é validada de forma estrita (monotonia, tipo de decisão, escalada sem laço) e a mesma referência entra nos parâmetros de um estágio, de modo que o motor de estágios refaça o que dependia da antiga.",
+      "id": "EX4-16",
+      "rejected_coupling": [
+        "identificador de política com versão semântica ligado a um documento do projeto de origem",
+        "migração de enums históricos"
+      ],
+      "source_classification": [
+        "GENERIC_BEHAVIOR",
+        "SYSCOM_COUPLING"
+      ],
+      "source_reference": {
+        "also": [
+          {
+            "file": "tools/review/derive_review_class.py",
+            "symbols": [
+              "POLICY"
+            ]
+          }
+        ],
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "1. As cinco classes",
+          "12. Mudanças 2.0.0 para 2.1.0"
+        ]
+      },
+      "tests": [
+        "tests/test_review_policy.py::PolicyIdentityAndVersioning",
+        "tests/test_review_routing.py::DecisionIdentityIsDeterministicAndPolicyAware"
+      ]
+    }
+  ],
+  "corrections": [
+    {
+      "agent_destination": [
+        {
+          "file": "core/stage_state.py",
+          "symbols": [
+            "FailureInfo"
+          ]
+        },
+        {
+          "file": "core/orchestrator.py",
+          "symbols": [
+            "StageFailure",
+            "_fail"
+          ]
+        },
+        {
+          "file": "core/resume.py",
+          "symbols": [
+            "reconcile"
+          ]
+        },
+        {
+          "file": "core/recheck_stage.py",
+          "symbols": [
+            "AIRecheckStage"
+          ]
+        },
+        {
+          "file": "schemas/run-state.schema.json",
+          "symbols": []
+        }
+      ],
+      "description": "O motor de estágios repetia toda falha técnica até max_attempts e ignorava o retryable que o executor de AI_RECHECK já informava. Agora uma falha marcada retryable=false falha na primeira tentativa e a retomada não gasta outra; o que é repetível segue a RetryPolicy.",
+      "id": "COR4-01",
+      "origin": "Limitação registrada na Extração 3 (AGENT_EXTRACTION_3.md): o motor repetia sem consultar retryable.",
+      "tests": [
+        "tests/test_retryable_semantics.py::RetryableFailureRetries",
+        "tests/test_retryable_semantics.py::NonRetryableFailureStopsAtOnce",
+        "tests/test_retryable_semantics.py::ANonRetryableFailureIsNotForever",
+        "tests/test_retryable_semantics.py::EpistemicRetryIsUntouched",
+        "tests/test_retryable_semantics.py::FailureRecordFormat"
+      ],
+      "unchanged": [
+        "qualquer exceção comum de tratador continua repetível até o limite da RetryPolicy",
+        "o formato gravado da falha é idêntico quando retryable é verdadeiro (o campo só é gravado quando é false)",
+        "um recheck válido, inclusive INCONCLUSIVE, continua sem ser repetido pelo motor de estágios",
+        "entradas novas, adaptador ou política diferentes recomeçam a contagem de tentativas"
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "planned_destination": "capacidade genérica de revisão humana: portal, pergunta, ingestão da resposta e promoção a VALIDATED por pessoa nomeada",
+      "reason": "O roteamento só entrega o HumanDecisionCandidate; como perguntar e como registrar a resposta é outra capacidade, com o seu próprio contrato (a mesma pendência da Extração 3, EX3).",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "requires_named_person",
+          "queue"
+        ]
+      }
+    },
+    {
+      "planned_destination": "emissores de sinais por tipo de software (adaptadores de domínio que transformam uma análise em AnalysisSignal)",
+      "reason": "Os sinais do projeto de origem nascem dos artefatos de tela. O contrato do sinal é genérico e foi provado com sinais sintéticos de dois softwares sem relação; produzi-los de código, banco e documentação é trabalho de cada adaptador.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive",
+          "derive_dir"
+        ]
+      }
+    },
+    {
+      "planned_destination": "persistência do backlog de fontes e dos candidatos de revisão",
+      "reason": "SourceGapRequirement e HumanDecisionCandidate são artefatos com identidade, que um estágio pode gravar como saída. Um backlog em disco, com ciclo de vida e fechamento, exige o contrato da capacidade de revisão humana.",
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "8. Ordem de trabalho em escala"
+        ]
+      }
+    },
+    {
+      "planned_destination": "calibração das taxas de amostragem e promoção de gatilhos a partir da auditoria de amostra",
+      "reason": "A política original manda promover o gatilho, e não a taxa, quando a auditoria revela erro sistemático. Medir o acerto exige dados de uso real que ainda não existem; as taxas ficam como valor inicial configurável.",
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "9. Amostragem: configuração operacional, não verdade científica"
+        ]
+      }
+    },
+    {
+      "planned_destination": "ordem de trabalho em lote: processar tudo, reclassificar depois do recheck e entregar filas por classe",
+      "reason": "Aqui a decisão é por assunto e a reclassificação depois do recheck é feita por follow_up. Orquestrar milhares de assuntos em filas é uma composição de estágios que depende dos emissores de sinais.",
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "8. Ordem de trabalho em escala"
+        ]
+      }
+    },
+    {
+      "planned_destination": "agrupamento semântico de perguntas parecidas para uma única pergunta humana",
+      "reason": "A Fundação já tem deduplicação por família (core/escalation.py, dedupe_questions). Os candidatos aqui se deduplicam por identidade de conteúdo; juntar perguntas semelhantes é uma regra de revisão humana ainda não extraída.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "derive"
+        ]
+      }
+    }
+  ],
+  "extraction": "EXTRACTION_004",
+  "not_extracted": [
+    "interface de revisão humana",
+    "portal de perguntas",
+    "ingestão de resposta humana",
+    "implementação do adaptador de DokuWiki",
+    "observador de mudanças (daemon)",
+    "etapa K4.3 do SYSCOM",
+    "analisador de telas",
+    "engenharia reversa de banco",
+    "adaptador real de provedor de modelo",
+    "chamada de API de modelo",
+    "persistência do backlog de fontes",
+    "emissores de sinais por tipo de software"
+  ],
+  "reference": {
+    "access": "read-only",
+    "commit": "4c652a38c37d1c492837e82a0cef06de59de2a6c",
+    "not_consulted": "O código de roteamento do K4.2 e os demais arquivos de tools/batch: as duas fontes estudadas bastaram para a árvore, o item crítico, a regra de confiança, a cobertura de fonte, a privacidade e as taxas.",
+    "sources": [
+      {
+        "git_blob": "ede4260996af6349c31dbc47b7d9988411839370",
+        "path": "docs/HUMAN_REVIEW_POLICY.md"
+      },
+      {
+        "git_blob": "054cc76a81d78746673ed206e7f482201fe74118",
+        "path": "tools/review/derive_review_class.py"
+      }
+    ],
+    "working_tree": "O workspace de referência tinha alterações locais não relacionadas antes e depois desta extração; os dois arquivos estudados eram idênticos ao commit."
+  },
+  "rejected": [
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Itens críticos, marcações de auditoria e tipos de grid falam de identidade, abas, campos, botões e colunas de tela; o sinal genérico fala de um assunto e de um ponto dentro dele.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "CRITICAL_AUDIT_ITEMS",
+          "GRID_AUDIT_ITEMS",
+          "MAIN_GRID_KINDS",
+          "AUDIT_LABEL"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "As 28 flags secundárias são vocabulário de tela; a taxonomia mínima tem onze famílias mais um qualificador.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "FLAG_ORDER"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Os códigos de limite físico da captura e a leitura de issues de extração por componente de tela não existem para outros tipos de assunto; a lacuna de fonte é um sinal (TRUNCATED_EVIDENCE) com evidência por hash.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "SOURCE_LIMIT_CODES"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Fontes de dado do projeto de origem ligadas a perguntas abertas (runtime, wiki, banco de produção) nomeiam adaptadores; os tipos de fonte do agente são genéricos.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "RUNTIME_SOURCES",
+          "FIREBIRD_SOURCES"
+        ]
+      }
+    },
+    {
+      "classification": "DATASET_SPECIFIC",
+      "reason": "Classes de privacidade por campo e a razão social do acervo na barra de título são dados do projeto de origem; ficaram o escopo da preocupação e a fronteira de dados.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "PERSONAL_PRIVACY",
+          "COMPANY_PRIVACY"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Os tipos de contradição de padrão têm nomes e semântica do projeto de origem; o agente tem cinco casos genéricos de contradição.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "HUMAN_CONTRADICTION_KINDS"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "A biblioteca de padrões de interação e a regra 'padrão nunca produz VALIDATED' pertencem ao conhecimento de telas do projeto de origem.",
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "7. Padrão de interação e nível de evidência"
+        ]
+      }
+    },
+    {
+      "classification": "SYSCOM_COUPLING",
+      "reason": "Raízes congeladas, pasta de telas padrão, nome da política e do schema de triagem, e a limpeza semântica por tela são layout e contratos do projeto de origem.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "FROZEN_ROOTS",
+          "DEFAULT_SCREENS",
+          "POLICY",
+          "TRIAGE_SCHEMA",
+          "derive_dir"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "A data de geração tem valor padrão fixo no código; o artefato novo não grava tempo.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "main"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "Reescreve o arquivo de validação de entrada no lugar; o agente nunca reescreve uma entrada.",
+      "source_reference": {
+        "file": "tools/review/derive_review_class.py",
+        "symbols": [
+          "write_validation"
+        ]
+      }
+    },
+    {
+      "classification": "HISTORICAL_ACCIDENT",
+      "reason": "O enum histórico de três classes e a tabela de compatibilidade são herança de versões anteriores da política de origem; o agente nasce com as cinco classes.",
+      "source_reference": {
+        "file": "docs/HUMAN_REVIEW_POLICY.md",
+        "symbols": [
+          "10. Compatibilidade com os enums antigos"
+        ]
+      }
+    }
+  ],
+  "title": "Roteamento genérico de revisão e semântica de repetição do motor de estágios"
+}

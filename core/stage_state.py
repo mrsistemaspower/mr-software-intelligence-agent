@@ -98,13 +98,20 @@ _CHECKPOINT_ID = re.compile(r"^ckpt:sha256:[0-9a-f]{64}$")
 
 @dataclass(frozen=True)
 class FailureInfo:
-    """O que se registra de uma falha: dados simples, sem exceção do Python e sem caminho local."""
+    """O que se registra de uma falha: dados simples, sem exceção do Python e sem caminho local.
+
+    `retryable`: uma nova tentativa com as mesmas entradas poderia dar certo? O padrão é `True` (o motor sempre repetiu até o
+    limite da `RetryPolicy`). `False` marca uma falha determinística (por exemplo, adaptador inelegível ou configuração estática
+    malformada): repetir só gasta tentativa, então a retomada não a repete. Só o valor `False` é gravado; o padrão não aparece no
+    dado, para que o formato anterior continue idêntico.
+    """
 
     stage_id: str
     category: str
     message: str
     attempt: int
     checkpoint_state: str = CHECKPOINT_ABSENT
+    retryable: bool = True
 
     def __post_init__(self) -> None:
         if not is_valid_name(self.stage_id):
@@ -119,22 +126,32 @@ class FailureInfo:
             raise TransitionError("attempt deve ser inteiro não negativo")
         if self.checkpoint_state not in CHECKPOINT_STATES:
             raise TransitionError(f"checkpoint_state desconhecido: {self.checkpoint_state!r}")
+        if type(self.retryable) is not bool:
+            raise TransitionError("retryable deve ser booleano")
 
     def to_dict(self) -> dict:
-        return {
+        data: dict = {
             "stage_id": self.stage_id,
             "category": self.category,
             "message": self.message,
             "attempt": self.attempt,
             "checkpoint_state": self.checkpoint_state,
         }
+        if not self.retryable:
+            data["retryable"] = False
+        return data
 
     @classmethod
     def from_dict(cls, data: object) -> "FailureInfo":
         keys = {"stage_id", "category", "message", "attempt", "checkpoint_state"}
-        if not isinstance(data, dict) or set(data) != keys:
+        if not isinstance(data, dict) or not keys <= set(data) or set(data) - keys - {"retryable"}:
             raise TransitionError("falha malformada")
-        return cls(data["stage_id"], data["category"], data["message"], data["attempt"], data["checkpoint_state"])
+        if "retryable" in data and data["retryable"] is not False:
+            # Uma só representação: o padrão (repetível) não é gravado, então `true` explícito é dado fora do formato.
+            raise TransitionError("retryable só é gravado quando é false")
+        return cls(
+            data["stage_id"], data["category"], data["message"], data["attempt"], data["checkpoint_state"], data.get("retryable", True)
+        )
 
 
 def sanitize_message(text: str) -> str:
@@ -148,7 +165,11 @@ def sanitize_message(text: str) -> str:
 def failure_from_exception(
     stage_id: str, error: BaseException, attempt: int, *, category: str = HANDLER_ERROR, checkpoint_state: str = CHECKPOINT_ABSENT
 ) -> FailureInfo:
-    """Resume uma exceção em dados portáteis (nome do tipo e mensagem limpa). A exceção em si nunca é gravada."""
+    """Resume uma exceção em dados portáteis (nome do tipo e mensagem limpa). A exceção em si nunca é gravada.
+
+    Uma exceção qualquer é repetível: o motor não sabe se uma nova tentativa daria certo, então mantém o comportamento de sempre.
+    Só um tratador que SABE que a falha é determinística diz o contrário, levantando `StageFailure(..., retryable=False)`.
+    """
     detail = str(error).strip()
     text = type(error).__name__ + (f": {detail}" if detail else "")
     return FailureInfo(stage_id, category, sanitize_message(text), attempt, checkpoint_state)

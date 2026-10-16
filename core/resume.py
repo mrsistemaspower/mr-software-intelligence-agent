@@ -17,7 +17,9 @@ Regras, aplicadas em ordem topológica (dependências primeiro):
 4. Propagação: um estágio invalidado invalida os dependentes concluídos (causa UPSTREAM_INVALIDATED, com o estágio de
    origem). Ramos que não dependem do invalidado ficam intactos.
 5. FAILED: se as entradas mudaram desde a falha, ou a dependência está sendo refeita, a falha antiga não vale mais e a
-   contagem de tentativas recomeça; senão, com tentativas sobrando volta a PENDING (`RETRY`); sem tentativas fica FAILED
+   contagem de tentativas recomeça; senão, se a falha foi declarada NÃO repetível (`retryable=False`: determinística, as
+   mesmas entradas dariam a mesma falha) o estágio fica FAILED na hora (`EXHAUSTED`, motivo `NON_RETRYABLE_FAILURE`), sem
+   gastar outra tentativa; senão, com tentativas sobrando volta a PENDING (`RETRY`); sem tentativas fica FAILED
    (`EXHAUSTED`). Falha por mutação de fonte (SOURCE_MUTATION) não gasta tentativa: não foi culpa do estágio. Se uma
    dependência falhou de vez, o estágio fica BLOCKED.
 6. PENDING, INVALIDATED e BLOCKED viram BLOCKED se alguma dependência está FAILED ou BLOCKED, ou voltam a PENDING se o
@@ -199,6 +201,9 @@ def reconcile(state: RunState, context: ReconcileInputs) -> tuple[RunState, Resu
             if record.last_identity != identity:
                 records[name] = record.transition(StageState.PENDING, reset_attempts=True)
                 plans[name] = StagePlan(name, Decision.RUN, "INPUTS_CHANGED_SINCE_FAILURE")
+            elif record.failure is not None and not record.failure.retryable:
+                # Falha determinística declarada pelo tratador: as mesmas entradas dariam a mesma falha. Não gasta outra tentativa.
+                plans[name] = StagePlan(name, Decision.EXHAUSTED, "NON_RETRYABLE_FAILURE")
             elif record.attempts < spec.retry.max_attempts:
                 records[name] = record.transition(StageState.PENDING)
                 plans[name] = StagePlan(name, Decision.RETRY, "ATTEMPTS_REMAIN", str(spec.retry.max_attempts - record.attempts))

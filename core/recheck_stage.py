@@ -10,8 +10,10 @@
    evidência autorizada também é, por construção, entrada do checkpoint, e a mudança dela invalida o estágio;
 4. chama `run_recheck` (elegibilidade, integridade da evidência, tarefa, adaptador, validação, rota);
 5. falha técnica -> `StageFailure` com categoria do motor de estágios (`INPUT_MUTATED` se a evidência mudou, `INPUT_UNAVAILABLE`
-   se não pôde ser lida, `HANDLER_ERROR` no resto). A repetição segue a `RetryPolicy` do estágio, em uma nova retomada, nunca em
-   laço aqui; atingido o limite, o estágio fica `FAILED`;
+   se não pôde ser lida, `HANDLER_ERROR` no resto) e com o `retryable` que o executor decidiu. Repetível: a repetição segue a
+   `RetryPolicy` do estágio, em uma nova retomada, nunca em laço aqui; atingido o limite, o estágio fica `FAILED`. NÃO repetível
+   (adaptador inelegível, violação da política de provedor, capacidade ausente, configuração estática malformada): o estágio fica
+   `FAILED` já na primeira tentativa e a retomada não gasta outra;
 6. resultado válido (inclusive `SOURCE_GAP`, `HUMAN_DECISION` e `INCONCLUSIVE`) -> grava o resultado como saída declarada. O estágio
    fica `COMPLETED`: um veredito de recheck não é falha do estágio. A ROTA vai dentro do resultado (`routing`), e quem consome
    decide o que fazer; o checkpoint é gravado pelo orquestrador.
@@ -137,18 +139,24 @@ class AIRecheckStage:
         try:
             return AIRecheckRequest.from_dict(loads_strict(raw))
         except (CanonicalJsonError, ModelContractError) as exc:
-            raise StageFailure(f"pedido de AI_RECHECK inválido: {exc}", HANDLER_ERROR) from exc
+            # O mesmo pedido, lido de novo, seria recusado do mesmo jeito: repetir só gastaria tentativa.
+            raise StageFailure(f"pedido de AI_RECHECK inválido: {exc}", HANDLER_ERROR, retryable=False) from exc
 
     def __call__(self, ctx: StageContext) -> None:
         if ctx.parameters.get(PARAMETER_KEY) != self.stage_parameters()[PARAMETER_KEY]:
+            # Configuração estática malformada: determinística, não melhora com nova tentativa.
             raise StageFailure(
                 "os parâmetros do estágio não declaram este adaptador e esta política; use AIRecheckStage.stage_parameters()",
                 HANDLER_ERROR,
+                retryable=False,
             )
         request = self._load_request(ctx)
         result = run_recheck(request, self.adapter, _StageEvidenceReader(ctx), policy=self.policy, attempt=ctx.attempt)
         if result.status == FAILED:
             failure = result.failure
             assert failure is not None
-            raise StageFailure(f"{failure['kind']}: {failure['message']}", _CATEGORY.get(failure["kind"], HANDLER_ERROR))
+            # O executor já decidiu se uma nova tentativa poderia dar certo (`failure.retryable`); o motor de estágios respeita.
+            raise StageFailure(
+                f"{failure['kind']}: {failure['message']}", _CATEGORY.get(failure["kind"], HANDLER_ERROR), retryable=bool(failure["retryable"])
+            )
         ctx.write_output_json(self.output, result.to_dict())

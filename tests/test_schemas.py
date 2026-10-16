@@ -12,6 +12,7 @@ EXPECTED_SCHEMAS = {
     "human-review", "integration-reference", "interaction", "knowledge-snapshot", "llm-profile", "lookup", "release-change", "screen",
     "run-config", "run-state", "stage-checkpoint", "stage-graph",
     "ai-recheck-request", "ai-recheck-result", "model-result", "model-task",
+    "analysis-signal", "review-decision", "source-gap-requirement", "human-decision-candidate",
     "software", "software-pack-manifest", "source", "source-adapter", "workflow",
 }
 

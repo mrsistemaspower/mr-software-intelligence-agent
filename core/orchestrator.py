@@ -78,14 +78,23 @@ UNAVAILABLE = "unavailable"
 
 
 class StageFailure(Exception):
-    """Falha controlada de um estágio. Um tratador pode levantá-la para escolher a categoria (padrão: HANDLER_ERROR)."""
+    """Falha controlada de um estágio. Um tratador pode levantá-la para escolher a categoria (padrão: HANDLER_ERROR).
+
+    `retryable` (padrão `True`): uma nova tentativa com as mesmas entradas poderia dar certo? Um tratador que SABE que a falha é
+    determinística (configuração estática malformada, adaptador inelegível, violação de política) levanta `retryable=False`: a
+    retomada então não gasta outra tentativa nela. Qualquer outra exceção segue repetível, como sempre foi.
+    """
 
     category = HANDLER_ERROR
+    retryable = True
 
-    def __init__(self, message: str, category: str | None = None) -> None:
+    def __init__(self, message: str, category: str | None = None, *, retryable: bool = True) -> None:
         super().__init__(message)
         if category is not None:
             self.category = category
+        if type(retryable) is not bool:
+            raise TypeError("retryable deve ser booleano")
+        self.retryable = retryable
 
 
 class InputMutatedError(StageFailure):
@@ -444,7 +453,7 @@ class Orchestrator:
         try:
             self._handlers[name](context)
         except StageFailure as exc:
-            return self._fail(state, spec, exc.category, str(exc) or type(exc).__name__)
+            return self._fail(state, spec, exc.category, str(exc) or type(exc).__name__, retryable=exc.retryable)
         except Exception as exc:  # noqa: BLE001 - qualquer erro do tratador vira falha registrada; BaseException propaga
             failure = failure_from_exception(name, exc, attempt)
             return self._fail(state, spec, failure.category, failure.message)
@@ -487,9 +496,11 @@ class Orchestrator:
         self._save(state)
         return state, "OK", ()
 
-    def _fail(self, state: RunState, spec: StageSpec, category: str, message: str) -> "tuple[RunState, str, tuple[Violation, ...]]":
+    def _fail(
+        self, state: RunState, spec: StageSpec, category: str, message: str, *, retryable: bool = True
+    ) -> "tuple[RunState, str, tuple[Violation, ...]]":
         record = state.stage(spec.stage_id)
-        failure = FailureInfo(spec.stage_id, category, sanitize_message(message), record.attempts, CHECKPOINT_ABSENT)
+        failure = FailureInfo(spec.stage_id, category, sanitize_message(message), record.attempts, CHECKPOINT_ABSENT, retryable)
         state = state.with_stage(record.transition(StageState.FAILED, failure=failure))
         self._save(state)
         return state, "FAILED", ()

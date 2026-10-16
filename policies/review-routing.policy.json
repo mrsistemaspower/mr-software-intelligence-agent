@@ -1,0 +1,162 @@
+{
+  "kind": "review-routing-policy",
+  "policy_id": "review-routing.default",
+  "version": "1.0.0",
+  "principle": "Cada pendência vai para quem consegue resolvê-la. Pessoa só decide o que a evidência e a IA não decidem com segurança. A classe é decisão sobre fila de trabalho, nunca sobre verdade.",
+  "precedence_note": "A ordem entre as classes é fixa no código e não é configurável aqui: HUMAN_DECISION, SOURCE_GAP bloqueante, AI_RECHECK, SOURCE_GAP não bloqueante, SAMPLE_QA, AUTO_PASS. Esta política só diz qual ação cada sinal pede, por criticidade.",
+  "blocking_from": "high",
+  "rules": {
+    "LOW_CONFIDENCE": {
+      "description": "A análise tem pouca certeza sobre a afirmação. Dúvida de leitura sobre evidência que existe: relê-se antes de perguntar a alguém.",
+      "actions": { "low": "SAMPLE_QA", "medium": "SAMPLE_QA", "high": "AI_RECHECK", "critical": "AI_RECHECK" }
+    },
+    "AMBIGUOUS_INTERPRETATION": {
+      "description": "A evidência admite mais de uma leitura. Sozinha, ambiguidade de baixa criticidade só é observada.",
+      "actions": { "low": "OBSERVE", "medium": "SAMPLE_QA", "high": "AI_RECHECK", "critical": "AI_RECHECK" }
+    },
+    "SELF_AUDIT_REVIEW": {
+      "description": "A própria análise pediu conferência de um item.",
+      "actions": { "low": "SAMPLE_QA", "medium": "SAMPLE_QA", "high": "AI_RECHECK", "critical": "AI_RECHECK" }
+    },
+    "MISSING_EVIDENCE": {
+      "description": "A informação não existe na evidência disponível. Falta fonte; não é falha de IA e não é decisão humana.",
+      "actions": { "low": "OBSERVE", "medium": "SOURCE_GAP", "high": "SOURCE_GAP", "critical": "SOURCE_GAP" }
+    },
+    "TRUNCATED_EVIDENCE": {
+      "description": "A evidência existe, mas foi cortada por um limite físico da fonte. Nenhuma releitura completa o que não foi capturado.",
+      "actions": { "low": "OBSERVE", "medium": "SOURCE_GAP", "high": "SOURCE_GAP", "critical": "SOURCE_GAP" }
+    },
+    "UNKNOWN_RELATION": {
+      "description": "Uma relação com outro objeto é conhecida, mas o destino não foi observado. Só bloqueia quando a relação é crítica.",
+      "actions": { "low": "OBSERVE", "medium": "OBSERVE", "high": "SOURCE_GAP", "critical": "SOURCE_GAP" }
+    },
+    "STRUCTURE_ONLY": {
+      "description": "Há estrutura sem dados. É o resultado correto da evidência; nunca roteia.",
+      "actions": { "low": "OBSERVE", "medium": "OBSERVE", "high": "OBSERVE", "critical": "OBSERVE" }
+    },
+    "CONFLICTING_EVIDENCE": {
+      "description": "Evidências em conflito sem tipo declarado. Tratado como conflito direto, o caso conservador.",
+      "decision_kind": "resolve_conflict",
+      "actions": { "low": "SAMPLE_QA", "medium": "HUMAN_DECISION", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" }
+    },
+    "CONFLICTING_EVIDENCE:compatible_tension": {
+      "description": "Tensão compatível: as posições podem coexistir. Nem toda contradição pede pessoa.",
+      "actions": { "low": "OBSERVE", "medium": "OBSERVE", "high": "SAMPLE_QA", "critical": "SAMPLE_QA" }
+    },
+    "CONFLICTING_EVIDENCE:resolvable_ambiguity": {
+      "description": "Conflito aparente que a releitura da evidência existente pode desfazer.",
+      "actions": { "low": "OBSERVE", "medium": "SAMPLE_QA", "high": "AI_RECHECK", "critical": "AI_RECHECK" }
+    },
+    "CONFLICTING_EVIDENCE:direct_conflict": {
+      "description": "Duas evidências dizem coisas incompatíveis e a evidência não decide qual vale.",
+      "decision_kind": "resolve_conflict",
+      "actions": { "low": "SAMPLE_QA", "medium": "HUMAN_DECISION", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" }
+    },
+    "CONFLICTING_EVIDENCE:human_vs_observed": {
+      "description": "Uma pessoa nomeada afirma algo que a evidência observada contradiz. Reler a mesma evidência não resolve: a decisão é da pessoa.",
+      "decision_kind": "resolve_conflict",
+      "actions": { "low": "HUMAN_DECISION", "medium": "HUMAN_DECISION", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" }
+    },
+    "POLICY_CONFLICT": {
+      "description": "Uma política vigente impede a continuação automática. Política dura não é resolvida pela IA.",
+      "decision_kind": "apply_policy",
+      "actions": { "low": "HUMAN_DECISION", "medium": "HUMAN_DECISION", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" }
+    },
+    "UNVERIFIED_HIGH_IMPACT_CLAIM": {
+      "description": "Afirmação de alto impacto que ainda é inferência. Nenhuma passada de IA a valida; quem confirma é pessoa nomeada.",
+      "decision_kind": "validate_claim",
+      "actions": { "low": "SAMPLE_QA", "medium": "SAMPLE_QA", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" }
+    },
+    "PRIVACY_OR_SECURITY_CONCERN": {
+      "description": "Preocupação de privacidade ou segurança sem escopo declarado. Tratada como específica do assunto, o caso conservador.",
+      "decision_kind": "assess_concern",
+      "actions": { "low": "SAMPLE_QA", "medium": "HUMAN_DECISION", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" }
+    },
+    "PRIVACY_OR_SECURITY_CONCERN:subject_specific": {
+      "description": "A preocupação é específica deste assunto. Exige decisão de pessoa.",
+      "decision_kind": "assess_concern",
+      "actions": { "low": "HUMAN_DECISION", "medium": "HUMAN_DECISION", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" }
+    },
+    "PRIVACY_OR_SECURITY_CONCERN:systemic_handled": {
+      "description": "Preocupação sistêmica, já tratada uma vez no nível do acervo. Não é gatilho por assunto; continua restringindo a fronteira de dados.",
+      "actions": { "low": "OBSERVE", "medium": "OBSERVE", "high": "OBSERVE", "critical": "OBSERVE" }
+    }
+  },
+  "default_rule": {
+    "description": "Família desconhecida da política: tratada como dúvida de interpretação. Estender a taxonomia é acrescentar uma regra aqui, sem tocar o código.",
+    "actions": { "low": "OBSERVE", "medium": "SAMPLE_QA", "high": "AI_RECHECK", "critical": "AI_RECHECK" }
+  },
+  "impact": {
+    "order": ["informational", "operational", "data_integrity", "financial", "fiscal", "security", "external_transmission", "irreversible_action"],
+    "floors": {
+      "informational": "low",
+      "operational": "medium",
+      "data_integrity": "high",
+      "financial": "high",
+      "fiscal": "high",
+      "security": "high",
+      "external_transmission": "high",
+      "irreversible_action": "critical"
+    },
+    "high_impact": ["data_integrity", "financial", "fiscal", "security", "external_transmission", "irreversible_action"],
+    "unverified_statuses": ["INFERRED"],
+    "effects": {
+      "reads-data": "informational",
+      "displays-data": "informational",
+      "changes-state": "operational",
+      "schedules-work": "operational",
+      "writes-data": "data_integrity",
+      "modifies-structure": "data_integrity",
+      "computes-monetary-value": "financial",
+      "moves-monetary-value": "financial",
+      "computes-regulatory-value": "fiscal",
+      "emits-regulatory-document": "fiscal",
+      "alters-access-control": "security",
+      "handles-credentials": "security",
+      "transmits-externally": "external_transmission",
+      "deletes-data": "irreversible_action",
+      "overwrites-without-backup": "irreversible_action"
+    },
+    "default_effect_impact": "operational"
+  },
+  "recheck": {
+    "max_rounds": 1,
+    "default_max_boundary": "LOCAL",
+    "on_inconclusive": { "low": "SAMPLE_QA", "medium": "SAMPLE_QA", "high": "HUMAN_DECISION", "critical": "HUMAN_DECISION" },
+    "risk_by_criticality": { "low": "LOW", "medium": "NORMAL", "high": "HIGH", "critical": "HIGH" }
+  },
+  "source_gap": {
+    "default_source_types": ["human-expert"]
+  },
+  "sampling": {
+    "seed": "review-sampling/1",
+    "rates": { "SAMPLE_QA": 0.2, "AUTO_PASS": 0.05 }
+  },
+  "prohibited_assumptions": {
+    "resolve_conflict": [
+      "Não escolher uma das posições em conflito por conta própria.",
+      "Não descartar nem sobrescrever nenhuma posição: o histórico das duas é preservado.",
+      "Não tratar o resultado de uma releitura por IA como validação humana."
+    ],
+    "validate_claim": [
+      "Não tratar a afirmação como validada: ela é uma inferência até uma pessoa nomeada confirmá-la.",
+      "Não presumir o efeito da afirmação a partir de documentação ou de leitura por IA.",
+      "Não promover o status por causa da classe de revisão, da confiança ou de uma amostra sem erro."
+    ],
+    "apply_policy": [
+      "Não prosseguir como se a política não se aplicasse.",
+      "Não decidir a exceção à política sem uma pessoa nomeada.",
+      "Não reinterpretar a política para fazer o caso caber."
+    ],
+    "assess_concern": [
+      "Não enviar a evidência além da fronteira de dados declarada.",
+      "Não publicar nem reutilizar o valor sensível enquanto a decisão estiver aberta.",
+      "Não presumir que o tratamento sistêmico do acervo cobre este assunto."
+    ],
+    "resolve_residue": [
+      "Não repetir a releitura por IA: ela já foi feita e não resolveu.",
+      "Não adotar a leitura mais provável como se estivesse confirmada.",
+      "Não tratar a falta de conclusão como ausência de problema."
+    ]
+  }
+}

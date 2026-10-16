@@ -195,7 +195,7 @@ Falha técnica e `INCONCLUSIVE` válido são coisas diferentes e não se confund
 | Falha do adaptador, exceção, resposta malformada, evidência indisponível | técnica; `FAILED` | o estágio falha e o motor de estágios repete conforme a `RetryPolicy`, em uma NOVA retomada, nunca em laço interno; esgotadas as tentativas, o estágio fica `FAILED` e o adaptador não é chamado de novo |
 | `INCONCLUSIVE`, `SOURCE_GAP`, `HUMAN_DECISION` | epistêmica; resultado válido | o estágio conclui (`COMPLETED`), o checkpoint sela, e NADA é repetido |
 
-`retryable` no resultado `FAILED` diz se uma nova tentativa com a mesma entrada poderia dar certo: sim para tempo esgotado e indisponibilidade; para resposta malformada, só se o adaptador não é determinístico (um adaptador determinístico responderia igual). O motor de estágios repete até esgotar a política sem consultar esse sinal (ver Limitações).
+`retryable` no resultado `FAILED` diz se uma nova tentativa com a mesma entrada poderia dar certo: sim para tempo esgotado e indisponibilidade; para resposta malformada, só se o adaptador não é determinístico (um adaptador determinístico responderia igual). Desde a Extração 4 o motor de estágios respeita esse sinal: uma falha `retryable` falsa fica `FAILED` na primeira tentativa e a retomada não gasta outra (ver [`AGENT_EXTRACTION_4.md`](AGENT_EXTRACTION_4.md), seção Semântica de repetição). Quando a Extração 3 foi entregue, o motor repetia até esgotar a política sem consultar esse sinal.
 
 O executor nunca chama o adaptador duas vezes por conta própria. Não há espera nem recuo exponencial.
 
@@ -242,7 +242,7 @@ Nada disso foi implementado: nenhuma chamada de rede, nenhuma credencial, nenhum
 ## Limitações conhecidas
 
 - Não existe adaptador real. A suíte prova o contrato com adaptadores sintéticos; o comportamento com um modelo de verdade (respostas fora do contrato com mais frequência, latência, custo, recusas, formatos) não foi exercitado.
-- O motor de estágios repete uma falha técnica até esgotar a `RetryPolicy` sem consultar `retryable`. Recusas determinísticas (adaptador inelegível, evidência mudada) falharão de novo da mesma forma até acabarem as tentativas. Usar `max_attempts: 1` nesses casos evita o desperdício.
+- (Corrigido na Extração 4.) Nesta extração o motor de estágios repetia uma falha técnica até esgotar a `RetryPolicy` sem consultar `retryable`, e recusas determinísticas (adaptador inelegível, evidência mudada) falhavam de novo da mesma forma até acabarem as tentativas. Agora uma falha não repetível para na primeira tentativa; o que continua valendo é que o `retryable` é uma decisão do executor, não do motor.
 - Uma resposta que cita referência não autorizada é recusada inteira. É a escolha conservadora; um modelo real que erre uma referência perde todo o resultado.
 - O texto da resposta não pode conter algo que pareça caminho local (regra de portabilidade dos artefatos), mesmo quando o caminho é conteúdo legítimo da evidência. Quem precisar disso deve pedir ao modelo para não reproduzi-lo.
 - Evidência cabe inteira em memória e dentro da tarefa; não há paginação, resumo nem limite próprio de tamanho. O adaptador declara `long-context` quando precisa.

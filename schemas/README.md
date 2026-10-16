@@ -41,6 +41,17 @@ Todos seguem JSON Schema 2020-12 e têm `$id` no formato `urn:mr-software-intell
 | `ai-recheck-request` | AIRecheckRequest | segunda análise de evidência existente: assunto genérico, ambiguidade, afirmações, evidência autorizada, interpretação existente. Ver `core/ai_recheck.py` |
 | `ai-recheck-result` | AIRecheckResult | resultado aceito (`RESOLVED`, `SOURCE_GAP`, `HUMAN_DECISION`, `INCONCLUSIVE`, `FAILED`) com rota e proveniência; todo achado é `INFERRED`. Define também `modelOutput`, a resposta bruta exigida do modelo |
 
+## Roteamento de revisão (quando criar uma releitura, uma lacuna de fonte ou uma decisão humana)
+
+| Schema | Registro | Ideia central |
+|---|---|---|
+| `analysis-signal` | AnalysisSignal | observação portátil de uma análise: família aberta e qualificador, criticidade e confiança como eixos separados, classe de impacto derivável de efeitos, evidência por referência e hash. Define os blocos compartilhados. Ver `core/analysis_signal.py` |
+| `review-decision` | ReviewDecision | a rota de um assunto (`AUTO_PASS`, `SAMPLE_QA`, `AI_RECHECK`, `SOURCE_GAP`, `HUMAN_DECISION`) com sinais considerados, motivos, sinais secundários, referência da política e snapshot de evidência; `validation_effect` é sempre `NONE`. Ver `core/review_routing.py` |
+| `source-gap-requirement` | SourceGapRequirement | o que falta obter, por quê, tipos genéricos de fonte, impacto e se bloqueia |
+| `human-decision-candidate` | HumanDecisionCandidate | a fronteira com a revisão humana: o que decidir, por que a IA não decide, evidência, posições em conflito e o que não se pode presumir; não carrega resposta |
+
+A política que alimenta o roteamento é dado, em `policies/review-routing.policy.json`, validada por `core/review_policy.py` (sem schema próprio: as regras entre campos, como monotonia e `decision_kind`, só o código confere). O formato gravado de falha em `run-state` ganhou `retryable`, presente somente quando é `false`.
+
 ## Contratos de configuração (como o agente se organiza)
 
 | Schema | Valida |

@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:review-decision:1",
+  "title": "ReviewDecision",
+  "description": "A decisão de roteamento de revisão de um assunto: a classe (AUTO_PASS, SAMPLE_QA, AI_RECHECK, SOURCE_GAP ou HUMAN_DECISION), os sinais considerados, os motivos primários e os sinais secundários, se exige pessoa nomeada, a próxima ação, a referência da política (id, versão e digest) e o snapshot de evidência. A classe é decisão sobre FILA DE TRABALHO, nunca sobre verdade: validation_effect é sempre NONE, AUTO_PASS não é VALIDATED e nenhuma classe promove conhecimento. decision_id deriva do assunto, da política, dos sinais, do histórico de releitura e da versão do motor, e é conferido ao carregar; a amostragem de qualidade e a próxima ação são derivadas dele e também conferidas. Em AI_RECHECK carrega o plano para montar o AIRecheckRequest; em SOURCE_GAP, os requisitos de fonte; em HUMAN_DECISION, os candidatos à decisão humana (core/review_routing.py).",
+  "type": "object",
+  "required": [
+    "kind", "decision_id", "engine", "subject", "decision_class", "signals", "assessments", "primary_reasons", "secondary_signals",
+    "requires_named_human", "next_action", "policy", "evidence_snapshot", "recheck_history", "validation_effect"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "review-decision" },
+    "decision_id": { "type": "string", "pattern": "^art:review\\.decision:sha256:[0-9a-f]{64}$" },
+    "engine": { "const": "review-router/1" },
+    "software_id": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/softwareId" },
+    "subject": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/subject" },
+    "decision_class": { "$ref": "#/$defs/reviewClass" },
+    "signals": {
+      "description": "Os sinais considerados, ordenados por id (inclusive os derivados de afirmações de alto impacto).",
+      "type": "array",
+      "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1" }
+    },
+    "assessments": {
+      "description": "Como cada sinal foi avaliado: regra, criticidade efetiva, ação pedida e ação final, e o papel na decisão.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/assessment" }
+    },
+    "primary_reasons": {
+      "description": "Os sinais que definiram a classe.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/primaryReason" }
+    },
+    "secondary_signals": {
+      "description": "Os sinais considerados que não definiram a classe. Preservam a observabilidade (por exemplo AUTO_PASS com uma relação opcional desconhecida).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/secondarySignal" }
+    },
+    "requires_named_human": {
+      "description": "Verdadeiro exatamente em HUMAN_DECISION.",
+      "type": "boolean"
+    },
+    "next_action": {
+      "enum": ["PROCEED", "SAMPLE_REVIEW", "RUN_AI_RECHECK", "ACQUIRE_SOURCE", "REQUEST_HUMAN_DECISION"]
+    },
+    "policy": { "$ref": "#/$defs/policyRef" },
+    "evidence_snapshot": {
+      "description": "A evidência consultada pelos sinais, por ref e hash, com o digest do conjunto.",
+      "type": "object",
+      "required": ["items", "digest"],
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/evidenceBinding" }
+        },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "recheck_history": {
+      "description": "Releituras por IA CONCLUÍDAS que limitam o laço epistêmico. Falha técnica não entra aqui.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/recheckRecord" }
+    },
+    "validation_effect": {
+      "description": "A classe de revisão nunca promove conhecimento.",
+      "const": "NONE"
+    },
+    "constraints": {
+      "description": "Restrição de fronteira de dados vinda dos sinais (a mais estrita). Aperta qualquer releitura por modelo; nunca afrouxa.",
+      "type": "object",
+      "required": ["max_boundary"],
+      "additionalProperties": false,
+      "properties": {
+        "max_boundary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/boundary" }
+      }
+    },
+    "recheck_plan": { "$ref": "#/$defs/recheckPlan" },
+    "source_gap_requirements": {
+      "type": "array",
+      "items": { "$ref": "urn:mr-software-intelligence:schema:source-gap-requirement:1" }
+    },
+    "human_decision_candidates": {
+      "type": "array",
+      "items": { "$ref": "urn:mr-software-intelligence:schema:human-decision-candidate:1" }
+    },
+    "quality_sampling": { "$ref": "#/$defs/qualitySampling" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "decision_class": { "const": "AI_RECHECK" } }, "required": ["decision_class"] },
+      "then": { "required": ["recheck_plan"] },
+      "else": { "not": { "required": ["recheck_plan"] } }
+    },
+    {
+      "if": { "properties": { "decision_class": { "const": "HUMAN_DECISION" } }, "required": ["decision_class"] },
+      "then": {
+        "required": ["human_decision_candidates"],
+        "properties": { "human_decision_candidates": { "minItems": 1 }, "requires_named_human": { "const": true } }
+      },
+      "else": {
+        "not": { "required": ["human_decision_candidates"] },
+        "properties": { "requires_named_human": { "const": false } }
+      }
+    },
+    {
+      "if": { "properties": { "decision_class": { "const": "SOURCE_GAP" } }, "required": ["decision_class"] },
+      "then": { "required": ["source_gap_requirements"], "properties": { "source_gap_requirements": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "decision_class": { "enum": ["SAMPLE_QA", "AUTO_PASS"] } }, "required": ["decision_class"] },
+      "then": { "required": ["quality_sampling"] },
+      "else": { "not": { "required": ["quality_sampling"] } }
+    },
+    {
+      "if": { "properties": { "decision_class": { "const": "AUTO_PASS" } }, "required": ["decision_class"] },
+      "then": { "properties": { "primary_reasons": { "maxItems": 0 } } },
+      "else": { "properties": { "primary_reasons": { "minItems": 1 } } }
+    }
+  ],
+  "$defs": {
+    "reviewClass": {
+      "enum": ["AUTO_PASS", "SAMPLE_QA", "AI_RECHECK", "SOURCE_GAP", "HUMAN_DECISION"]
+    },
+    "action": {
+      "description": "O que um sinal pede. OBSERVE: só registrar (sinal secundário, sem efeito de rota).",
+      "enum": ["OBSERVE", "SAMPLE_QA", "AI_RECHECK", "SOURCE_GAP", "HUMAN_DECISION"]
+    },
+    "ruleKey": {
+      "description": "A regra da política que valeu: FAMILIA, FAMILIA:qualificador ou default.",
+      "type": "string",
+      "pattern": "^(default|[A-Z][A-Z0-9_]{1,63}(:[a-z][a-z0-9_]{0,63})?)$"
+    },
+    "why": {
+      "description": "Por que a ação final é a que é. rule: a política mandou. Os demais são ajustes do roteador, sempre explicados.",
+      "enum": ["rule", "no-evidence-to-reread", "recheck-resolved", "recheck-source-gap", "recheck-human-decision", "recheck-inconclusive", "recheck-another-round"]
+    },
+    "signalId": { "type": "string", "pattern": "^art:analysis\\.signal:sha256:[0-9a-f]{64}$" },
+    "assessment": {
+      "type": "object",
+      "required": [
+        "signal_id", "family", "rule", "impact_class", "declared_criticality", "effective_criticality", "rule_action", "action",
+        "blocking", "why", "role"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "signal_id": { "$ref": "#/$defs/signalId" },
+        "family": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/family" },
+        "rule": { "$ref": "#/$defs/ruleKey" },
+        "impact_class": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/impactClass" },
+        "declared_criticality": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/criticality" },
+        "effective_criticality": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/criticality" },
+        "rule_action": { "$ref": "#/$defs/action" },
+        "action": { "$ref": "#/$defs/action" },
+        "blocking": { "type": "boolean" },
+        "why": { "$ref": "#/$defs/why" },
+        "role": { "enum": ["primary", "secondary", "addressed"] }
+      }
+    },
+    "primaryReason": {
+      "type": "object",
+      "required": ["signal_id", "family", "target_ref", "rule", "action", "effective_criticality", "why", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "signal_id": { "$ref": "#/$defs/signalId" },
+        "family": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/family" },
+        "target_ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+        "rule": { "$ref": "#/$defs/ruleKey" },
+        "action": { "$ref": "#/$defs/action" },
+        "effective_criticality": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/criticality" },
+        "why": { "$ref": "#/$defs/why" },
+        "summary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+      }
+    },
+    "secondarySignal": {
+      "type": "object",
+      "required": ["signal_id", "family", "action", "effective_criticality"],
+      "additionalProperties": false,
+      "properties": {
+        "signal_id": { "$ref": "#/$defs/signalId" },
+        "family": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/family" },
+        "action": { "$ref": "#/$defs/action" },
+        "effective_criticality": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/criticality" }
+      }
+    },
+    "policyRef": {
+      "description": "Identifica a política usada. O digest cobre TODO o conteúdo: qualquer mudança da política muda a referência e invalida a decisão.",
+      "type": "object",
+      "required": ["policy_id", "version", "digest"],
+      "additionalProperties": false,
+      "properties": {
+        "policy_id": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" },
+        "version": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/version" },
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "recheckRecord": {
+      "type": "object",
+      "required": ["target_refs", "evidence", "round", "status", "request_id", "result_id", "detail"],
+      "additionalProperties": false,
+      "properties": {
+        "target_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" }
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/evidenceBinding" }
+        },
+        "round": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["RESOLVED", "SOURCE_GAP", "HUMAN_DECISION", "INCONCLUSIVE"] },
+        "request_id": { "type": "string", "pattern": "^art:ai-recheck\\.request:sha256:[0-9a-f]{64}$" },
+        "result_id": { "type": "string", "pattern": "^art:ai-recheck\\.result:sha256:[0-9a-f]{64}$" },
+        "detail": { "type": "object" }
+      }
+    },
+    "recheckPlan": {
+      "description": "O que basta para montar o AIRecheckRequest da Extração 3 (core/review_recheck.py). A evidência autorizada de verdade vem de um catálogo e precisa ter o hash daqui.",
+      "type": "object",
+      "required": ["subject", "round", "claims", "evidence", "ambiguity", "reason", "max_boundary", "risk_level"],
+      "additionalProperties": false,
+      "properties": {
+        "subject": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/subject" },
+        "round": { "type": "integer", "minimum": 1 },
+        "claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["claim_ref", "statement"],
+            "additionalProperties": false,
+            "properties": {
+              "claim_ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+              "statement": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+            }
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/evidenceBinding" }
+        },
+        "ambiguity": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "reason": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "max_boundary": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/boundary" },
+        "risk_level": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/riskLevel" }
+      }
+    },
+    "qualitySampling": {
+      "description": "Amostragem de qualidade determinística: o sorteio vem do hash da semente com o decision_id. A classe nunca muda por causa dele. SAMPLE_QA é amostrada para revisão (qa); AUTO_PASS, para auditoria (audit).",
+      "type": "object",
+      "required": ["purpose", "seed", "rate", "selected"],
+      "additionalProperties": false,
+      "properties": {
+        "purpose": { "enum": ["qa", "audit"] },
+        "seed": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+        "rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "selected": { "type": "boolean" }
+      }
+    }
+  }
+}

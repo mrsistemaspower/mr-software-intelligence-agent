@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:source-gap-requirement:1",
+  "title": "SourceGapRequirement",
+  "description": "O que falta obter para fechar uma dúvida: a informação ausente, por que importa, os tipos GENÉRICOS de fonte que poderiam trazê-la, o impacto e se a lacuna bloqueia. Falta de evidência é falta de fonte; não é falha de IA nem, por si, decisão humana. A identidade não depende da decisão que gerou o requisito, então o mesmo pedido vindo de reavaliações diferentes tem o mesmo id e se deduplica no backlog. Não nomeia adaptador, produto ou sistema (core/review_routing.py).",
+  "type": "object",
+  "required": [
+    "kind", "requirement_id", "subject", "target_ref", "missing_information", "why_needed", "recommended_source_types", "impact",
+    "blocking", "origin", "signal_ids"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "source-gap-requirement" },
+    "requirement_id": { "type": "string", "pattern": "^art:review\\.source-gap:sha256:[0-9a-f]{64}$" },
+    "subject": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/subject" },
+    "target_ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+    "missing_information": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+    "why_needed": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+    "recommended_source_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/sourceType" }
+    },
+    "impact": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/impact" },
+    "blocking": {
+      "description": "Bloqueia quando a criticidade efetiva chega ao limiar da política: a lacuna passa à frente de uma releitura por IA.",
+      "type": "boolean"
+    },
+    "origin": {
+      "description": "signal: o sinal já dizia que falta fonte (ou faltava evidência para reler). ai-recheck: a releitura concluiu que a evidência não contém a informação.",
+      "enum": ["signal", "ai-recheck"]
+    },
+    "signal_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^art:analysis\\.signal:sha256:[0-9a-f]{64}$" }
+    },
+    "evidence_consulted": {
+      "type": "array",
+      "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/evidenceBinding" }
+    }
+  }
+}

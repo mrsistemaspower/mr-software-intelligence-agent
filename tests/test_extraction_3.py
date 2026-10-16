@@ -24,6 +24,9 @@ SCHEMA_FILES = [REPO / "schemas" / f"{name}.schema.json" for name in NEW_SCHEMAS
 GENERIC_FILES = NEW_FILES + ADAPTER_FILES + SCHEMA_FILES
 INTENDED_MINIMUM = (3, 10)
 SYNTAX_AUDITED_DOWN_TO = (3, 9)
+# Módulos de extrações POSTERIORES (a Extração 4 roteia revisão sobre o AI_RECHECK). Dependem dos desta extração por construção;
+# a regra "nada anterior importa o novo" vale para os módulos que existiam antes, não para os que vieram depois.
+LATER_MODULES = {"analysis_signal", "review_policy", "review_routing", "review_recheck"}
 
 # Quem pode importar quem dentro do núcleo novo. Garante camadas sem ciclo e que as primitivas anteriores são reusadas.
 ALLOWED_INTERNAL = {
@@ -300,7 +303,7 @@ class LayeringAndReuse(Quiet, unittest.TestCase):
             "atomic", "snapshot", "integrity", "identity", "hashing", "serialization", "paths",
         }
         for path in sorted((REPO / "core").glob("*.py")):
-            if path.stem in new:
+            if path.stem in new or path.stem in LATER_MODULES:
                 continue
             with self.subTest(file=path.name):
                 self.assertEqual(self.internal_imports(path) & new, set())

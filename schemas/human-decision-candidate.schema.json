@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mr-software-intelligence:schema:human-decision-candidate:1",
+  "title": "HumanDecisionCandidate",
+  "description": "A fronteira com a revisão humana: o que precisa ser decidido, por que a IA não decide com segurança, a evidência disponível, as posições em conflito, o impacto, o papel recomendado (quando conhecido) e o que NÃO se pode presumir. É só o artefato de fronteira: não pergunta nem responde por ninguém, e não carrega resposta. Quem decide é pessoa nomeada; nenhuma classe de revisão e nenhuma releitura por IA valida nada. Tem a mesma independência de decisão de origem que source-gap-requirement (core/review_routing.py).",
+  "type": "object",
+  "required": [
+    "kind", "candidate_id", "subject", "target_ref", "decision_kind", "question", "why_ai_cannot_resolve", "impact",
+    "prohibited_assumptions", "signal_ids"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "human-decision-candidate" },
+    "candidate_id": { "type": "string", "pattern": "^art:review\\.human-candidate:sha256:[0-9a-f]{64}$" },
+    "subject": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/subject" },
+    "target_ref": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/ref" },
+    "decision_kind": {
+      "description": "Para que serve a decisão: resolve_conflict (posições que a evidência não decide), validate_claim (inferência de alto impacto a confirmar), apply_policy (política dura), assess_concern (privacidade ou segurança específica) ou resolve_residue (releitura por IA concluída sem resolver).",
+      "enum": ["resolve_conflict", "validate_claim", "apply_policy", "assess_concern", "resolve_residue"]
+    },
+    "question": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+    "why_ai_cannot_resolve": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" },
+    "impact": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/impact" },
+    "prohibited_assumptions": {
+      "description": "O que nenhuma automação pode presumir enquanto a decisão estiver aberta.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+    },
+    "signal_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^art:analysis\\.signal:sha256:[0-9a-f]{64}$" }
+    },
+    "evidence_available": {
+      "type": "array",
+      "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/evidenceBinding" }
+    },
+    "conflicting_claims": {
+      "type": "array",
+      "items": { "$ref": "urn:mr-software-intelligence:schema:analysis-signal:1#/$defs/position" }
+    },
+    "options": {
+      "description": "Alternativas que a evidência sustenta, quando conhecidas.",
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+    },
+    "recommended_role": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/name" },
+    "attempted_before": {
+      "description": "O que já foi tentado antes de chegar à pessoa, no vocabulário de human-review.attempted_before.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "outcome"],
+        "additionalProperties": false,
+        "properties": {
+          "step": { "$ref": "urn:mr-software-intelligence:schema:common:1#/$defs/ladderStep" },
+          "outcome": { "$ref": "urn:mr-software-intelligence:schema:model-task:1#/$defs/text" }
+        }
+      }
+    }
+  }
+}
